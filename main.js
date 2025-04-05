@@ -193,7 +193,12 @@ const activeEffects = reader.getMap(
         tempArray.push("damageTaken: " + reader.getFloat64());
         tempArray.push(reader.getArray((reader) => "parameters: " + reader.getString() + ": " + reader.getUint32()))
         tempArray.push(reader.getArray((reader) => "statGroups: " + reader.getString() + ": " + reader.getUint32()))
-        tempArray.push(reader.getArray((reader) => "timers: " + reader.getString() + "ticksLeft: " + reader.getUint32() + " maxTicks: " + reader.getUint32() + " active: " + reader.getBoolean()))
+        tempArray.push(reader.getArray((reader) => [
+            "timers: " + reader.getString(),
+            "ticksLeft: " + reader.getUint32(),
+            "maxTicks: " + reader.getUint32(),
+            "active: " + reader.getBoolean()
+        ]))
         return 
     }
 );
@@ -218,7 +223,7 @@ var equipmentSets = reader.getArray((reader) => {
             var qty = reader.getUint32();
         }
         var quickEquip = reader.getArray((reader) => reader.getUint16());
-        return "item: " + id + " stackable: " + stackable + " qty: " + qty + " quickEquip: " + quickEquip;
+        return ["item: " + id, "stackable: " + stackable, "qty: " + qty, "quickEquip: " + quickEquip];
     });
     if (reader.getBoolean()) {
         var spell = reader.getUint16();
@@ -232,7 +237,7 @@ var equipmentSets = reader.getArray((reader) => {
     var spells = [spell, aura, curse]
     var prayers = reader.getArray((reader) => reader.getUint16());
     return [equipment, spells, prayers]
-})
+});
 const selectedFoodSlot = reader.getUint32();
 const maxFoodSlot = reader.getUint32();
 const foodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
@@ -270,11 +275,15 @@ const enemyActiveEffects = reader.getMap(
         tempArray.push("damageTaken: " + reader.getFloat64());
         tempArray.push(reader.getArray((reader) => "parameters: " + reader.getString() + ": " + reader.getUint32()))
         tempArray.push(reader.getArray((reader) => "statGroups: " + reader.getString() + ": " + reader.getUint32()))
-        tempArray.push(reader.getArray((reader) => "timers: " + reader.getString() + "ticksLeft: " + reader.getUint32() + " maxTicks: " + reader.getUint32() + " active: " + reader.getBoolean()))
+        tempArray.push(reader.getArray((reader) => [
+            "timers: " + reader.getString(),
+            "ticksLeft: " + reader.getUint32(),
+            "maxTicks: " + reader.getUint32(),
+            "active: " + reader.getBoolean()
+        ]))
         return 
     }
 );
-console.log(activeEffects);
 const enemyFirstMiss = reader.getBoolean();
 const enemyBarrier = reader.getUint32();
 
@@ -297,13 +306,7 @@ const fightSpawnTicksLeft = reader.getUint32();
 const fightSpawnMaxTicks = reader.getUint32();
 const fightSpawnActive = reader.getBoolean();
 const combatActive = reader.getBoolean();
-var combatPassives = [];
-const combatPassivesLength = reader.getUint32();
-for (var i = 0; i < combatPassivesLength; i++) {
-    const combatPassive = reader.getUint16();
-    const combatPassiveDisplay = reader.getBoolean();
-    combatPassives.push(combatPassive + ":" + combatPassiveDisplay);
-}
+var combatPassives = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean());
 var combatArea = 0;
 var combatSubArea = 0;
 if (reader.getBoolean()) {
@@ -317,13 +320,8 @@ if (reader.getBoolean()) {
     monster = reader.getUint16();
 }
 const combatPaused = reader.getBoolean();
-const lootLength = reader.getUint32();
-var loot = [];
-for (var i = 0; i < lootLength; i++) {
-    var lootItem = reader.getUint16();
-    var lootItemQuantity = reader.getUint32();
-    loot.push(lootItem + ":" + lootItemQuantity);
-}
+var loot = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+
 
 // Slayer start
 const slayerActive = reader.getBoolean();
@@ -332,17 +330,10 @@ if (reader.getBoolean()) {
 }   
 const slayerLeft = reader.getUint32();
 const slayerExtended = reader.getBoolean();
-var slayerCategory = 0;
 if (reader.getBoolean()) {
-    slayerCategory = reader.getUint16();
+    var slayerCategory = reader.getUint16();
 }
-const slayerCategoryLength = reader.getUint32();
-var slayerCategories = [];
-for (var i = 0; i < slayerCategoryLength; i++) {
-    var slayerCategoryId = reader.getUint16();
-    var slayerCategoryName = reader.getUint32();
-    slayerCategories.push(slayerCategoryId + ":" + slayerCategoryName);
-}
+var slayerCategories = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 
 const slayerTaskTicksLeft = reader.getUint32();
 const slayerTaskMaxTicks = reader.getUint32();
@@ -350,38 +341,15 @@ const slayerTaskActive = reader.getBoolean();
 const slayerRealm = reader.getUint16();
 // Slayer Complete
 
-var activeEvent = 0;
 if (reader.getBoolean()) {
-    activeEvent = reader.getUint16();
+    var activeEvent = reader.getUint16();
 }
-var eventPassives = [];
-const eventPassivesLength = reader.getUint32();
-for (var i = 0; i < eventPassivesLength; i++) {
-    var eventPassive = reader.getUint16();
-    eventPassives.push(eventPassive);
-}
-var eventPassivesSelected = [];
-const eventPassivesSelectedLength = reader.getUint32();
-for (var i = 0; i < eventPassivesSelectedLength; i++) {
-    var eventPassive = reader.getUint16();
-    eventPassivesSelected.push(eventPassive);
-}
+var eventPassives = reader.getArray((reader) => reader.getUint16());
+const eventPassivesSelected = reader.getArray((reader) => reader.getUint16());
 const eventDungeonLength = reader.getUint32();
-var activeEventAreas = [];
-const activeEventAreasLength = reader.getUint32();
-for (var i = 0; i < activeEventAreasLength; i++) {
-    var activeEventArea = reader.getUint16();
-    var activeEventAreaName = reader.getUint32();
-    activeEventAreas.push(activeEventArea + ":" + activeEventAreaName);
-}
+var activeEventAreas = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 const eventProgress = reader.getUint32();
-var eventDungeonCompletions = [];
-const eventDungeonCompletionLength = reader.getUint32();
-for (var i = 0; i < eventDungeonCompletionLength; i++) {
-    var eventDungeonArea = reader.getUint16();
-    var eventDungeonAreaName = reader.getUint32();
-    eventDungeonCompletions.push(eventDungeonArea + ":" + eventDungeonAreaName);
-}
+var eventDungeonCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 const eventStrongholdTier = reader.getUint8();
 // Combat Complete
 
@@ -418,92 +386,54 @@ const raidactiveEffects = reader.getMap(
 
 const raidfirstMiss = reader.getBoolean();
 const raidbarrier = reader.getUint32();
-var raidMeleeStyle = 0;
 if (reader.getBoolean()) {
-    raidMeleeStyle = reader.getUint16();
+    var raidMeleeStyle = reader.getUint16();
 }
-var raidRangedStyle = 0;
 if (reader.getBoolean()) {
-    raidRangedStyle = reader.getUint16();
+    var raidRangedStyle = reader.getUint16();
 }
-var raidMagicStyle = 0;
 if (reader.getBoolean()) {
-    raidMagicStyle = reader.getUint16();
+    var raidMagicStyle = reader.getUint16();
 }
 const raidprayerPoints = reader.getUint32();
 const raidselectedEquipmentSet = reader.getUint16();
-const raidequipmentSetsLength = reader.getUint32();
-var raidequipmentSets = [];
-for (var i = 0; i < raidequipmentSetsLength; i++) {
-    var raidequipmentSet = [];
-    var raidequipment = [];
-    var raidequipmentLength = reader.getUint32();
-    for (var j = 0; j < raidequipmentLength; j++) {
-        var raidequipmentItem = reader.getUint16();
-        var raidstackable = 0;
-        var raidqty = 0;
+var raidequipmentSets = reader.getArray((reader) => {
+    var equipment = reader.getArray((reader) => {
+        var id = reader.getUint16();
         if (reader.getBoolean()) {
-            raidstackable = reader.getUint16();
-            raidqty = reader.getUint32();
+            var stackable = reader.getUint16();
+            var qty = reader.getUint32();
         }
-        var raidquickEquip = [];
-        var raidquickEquipLength = reader.getUint32();
-        for (var k = 0; k < raidquickEquipLength; k++) {
-            var raidquickEquipItem = reader.getUint16();
-            raidquickEquip.push(raidquickEquipItem);
-        }
-        raidequipment.push(raidequipmentItem + ":" + raidstackable + ":" + raidqty + ":" + raidquickEquip);
-    }
-    raidequipmentSet.push(raidequipment);
-    var raidspell = 0;
-    var raidaura = 0;
-    var raidcurse = 0;
+        var quickEquip = reader.getArray((reader) => reader.getUint16());
+        return ["item: " + id, "stackable: " + stackable, "qty: " + qty, "quickEquip: " + quickEquip];
+    });
     if (reader.getBoolean()) {
-        raidspell = reader.getUint16();
+        var spell = reader.getUint16();
     }
     if (reader.getBoolean()) {
-        raidaura = reader.getUint16();
+        var aura = reader.getUint16();
     }
     if (reader.getBoolean()) {
-        raidcurse = reader.getUint16();
+        var curse = reader.getUint16();
     }
-    raidequipmentSet.push([raidspell,raidaura,raidcurse]);
-    var raidprayerSelection = [];
-    var raidprayerSelectionLength = reader.getUint32();
-    for (var j = 0; j < raidprayerSelectionLength; j++) {
-        var raidprayerSelectionItem = reader.getUint16();
-        raidprayerSelection.push(raidprayerSelectionItem);
-    }
-    raidequipmentSet.push(raidprayerSelection);
-    raidequipmentSets.push(raidequipmentSet);
-}
+    var spells = [spell, aura, curse]
+    var prayers = reader.getArray((reader) => reader.getUint16());
+    return [equipment, spells, prayers]
+});
 const raidselectedFoodSlot = reader.getUint32();
 const raidmaxFoodSlot = reader.getUint32();
-const raidfoodSlots = [];
-const raidfoodSlotsLength = reader.getUint32();
-for (var i = 0; i < raidfoodSlotsLength; i++) {
-    var raidfoodSlotItem = reader.getUint16();
-    var raidfoodSlotQty = reader.getUint32();
-    raidfoodSlots.push(raidfoodSlotItem + ":" + raidfoodSlotQty);
-}
+const raidfoodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 
 const raidsummonTicksLeft = reader.getUint32();
 const raidsummonMaxTicks = reader.getUint32();
 const raidsummonActive = reader.getBoolean();
 const raidsoulPoints = reader.getUint32();
 const raidunholyPrayerMultiplier = reader.getUint8();
-var raidAltAttacks = [];
-const raidAltAttacksLength = reader.getUint32();
-for (var i = 0; i < raidAltAttacksLength; i++) {
-    var raidAltAttackSlot = reader.getUint16();
-    var raidAltAttackSpecials = [];
-    var raidAltAttackSpecialsLength = reader.getUint32();
-    for (var j = 0; j < raidAltAttackSpecialsLength; j++) {
-        var raidAltAttackSpecial = reader.getUint16();
-        raidAltAttackSpecials.push(raidAltAttackSpecial);
-    }
-    raidAltAttacks.push(raidAltAttackSlot + ":" + raidAltAttackSpecials);
-}
+const raidAltAttacks = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => reader.getArray((reader) => reader.getUint16())
+);
+
 // Character Complete
 
 // Enemy start
@@ -552,33 +482,18 @@ var raiddamageType = 0;
 //    raiddamageType = reader.getUint16();
 //}
 
-var goblinName = "";
-var goblinHitpoints = 0;
-var goblinAttack = 0;
-var goblinStrength = 0;
-var goblinDefence = 0;
-var goblinRanged = 0;
-var goblinMagic = 0;
-var goblinAttackType = 0;
-var goblinImage = 0;
-var goblinPassives = [];
-var goblinCorruption = 0;
 if (reader.getBoolean()) {
-    goblinName = reader.getString();
-    goblinHitpoints = reader.getUint32();
-    goblinAttack = reader.getUint32();
-    goblinStrength = reader.getUint32();
-    goblinDefence = reader.getUint32();
-    goblinRanged = reader.getUint32();
-    goblinMagic = reader.getUint32();
-    goblinAttackType = reader.getUint8();
-    goblinImage = reader.getInt8();
-    const goblinPassivesSize = reader.getUint32();
-    for (var i = 0; i < goblinPassivesSize; i++) {
-        var goblinPassive = reader.getUint16();
-        goblinPassives.push(goblinPassive);
-    }
-    goblinCorruption = reader.getUint32();
+    var goblinName = reader.getString();
+    var goblinHitpoints = reader.getUint32();
+    var goblinAttack = reader.getUint32();
+    var goblinStrength = reader.getUint32();
+    var goblinDefence = reader.getUint32();
+    var goblinRanged = reader.getUint32();
+    var goblinMagic = reader.getUint32();
+    var goblinAttackType = reader.getUint8();
+    var goblinImage = reader.getInt8();
+    var goblinPassives = reader.getArray((reader) => reader.getUint16());
+    var goblinCorruption = reader.getUint32();
 }
 // Enemy Complete
 
@@ -589,259 +504,89 @@ const raidfightSpawnTicksLeft = reader.getUint32();
 const raidfightSpawnMaxTicks = reader.getUint32();
 const raidfightSpawnActive = reader.getBoolean();
 const raidcombatActive = reader.getBoolean();
-var raidcombatPassives = [];
-const raidcombatPassivesLength = reader.getUint32();
-for (var i = 0; i < raidcombatPassivesLength; i++) {
-    const raidcombatPassive = reader.getUint16();
-    const raidcombatPassiveDisplay = reader.getBoolean();
-    raidcombatPassives.push(raidcombatPassive + ":" + raidcombatPassiveDisplay);
-}
-var raidPlayerModifiers = [];
-const raidPlayerModifiersLength = reader.getUint32();
-for (var i = 0; i < raidPlayerModifiersLength; i++) {
-    var raidPlayerModifier = reader.getUint16();
-    var raidPlayerModifierValue = reader.getFloat64();
-    var raidPlayerModifierScopeKey = reader.getUint32();
-    var raidPlayerModifierResult = "";
-    if (raidPlayerModifierScopeKey & 1) {
-        raidPlayerModifierResult += "skill:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 2) {
-        raidPlayerModifierResult += "damageType:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 4) {
-        raidPlayerModifierResult += "realm:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 8) {
-        raidPlayerModifierResult += "currency:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 16) {
-        raidPlayerModifierResult += "category:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 32) {
-        raidPlayerModifierResult += "action:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 64) {
-        raidPlayerModifierResult += "subcategory:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 128) {
-        raidPlayerModifierResult += "item:"+getUint16();
-    }
-    if (raidPlayerModifierScopeKey & 256) {
-        raidPlayerModifierResult += "effectGroup:"+getUint16();
-    }
-    raidPlayerModifiers.push(raidPlayerModifier + ":" + raidPlayerModifierValue + ":" + raidPlayerModifierScopeKey + ":" + raidPlayerModifierResult);
-}
+var raidcombatPassives = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean());
+var raidPlayerModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+    var modifiers = ["value: " + reader.getFloat64(), "modifierKey: " + reader.getUint32()];
+    for (var i = 1; i <= 256; i *= 2)
+        if (modifiers[1] & i) {
+            modifiers.push("skill: "+getUint16());
+        }
+    return modifiers;
+});
 
-var raidEnemyModifiers = [];
-const raidEnemyModifiersLength = reader.getUint32();
-for (var i = 0; i < raidEnemyModifiersLength; i++) {
-    var raidEnemyModifier = reader.getUint16();
-    var raidEnemyModifierValue = reader.getFloat64();
-    var raidEnemyModifierScopeKey = reader.getUint32();
-    var raidEnemyModifierResult = "";
-    if (raidEnemyModifierScopeKey & 1) {
-        raidEnemyModifierResult += "skill:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 2) {
-        raidEnemyModifierResult += "damageType:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 4) {
-        raidEnemyModifierResult += "realm:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 8) {
-        raidEnemyModifierResult += "currency:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 16) {
-        raidEnemyModifierResult += "category:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 32) {
-        raidEnemyModifierResult += "action:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 64) {
-        raidEnemyModifierResult += "subcategory:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 128) {
-        raidEnemyModifierResult += "item:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 256) {
-        raidEnemyModifierResult += "effectGroup:"+getUint16();
-    }
-    raidEnemyModifiers.push(raidEnemyModifier + ":" + raidEnemyModifierValue + ":" + raidEnemyModifierScopeKey + ":" + raidEnemyModifierResult);
-}
+var raidEnemyModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+    var modifiers = ["value: " + reader.getFloat64(), "modifierKey: " + reader.getUint32()];
+    for (var i = 1; i <= 256; i *= 2)
+        if (modifiers[1] & i) {
+            modifiers.push("skill: "+getUint16());
+        }
+    return modifiers;
+});
 
 const raidState = reader.getUint8();
 const raidDifficulty = reader.getUint8();
 
-const raidlockedItemsLength = reader.getUint32();
-var raidlockedItems = [];
-for (var i = 0; i < raidlockedItemsLength; i++) {
-    var lockedItem = reader.getUint16();
-    raidlockedItems.push(lockedItem);
-}
+var raidlockedItems = reader.getArray((reader) => reader.getUint16());
 
-var raidbankTabsLength = reader.getUint32();
-var raidbankTabs = [];
-for (var i = 0; i < raidbankTabsLength; i++) {
-    var bankTabLength = reader.getUint32();
-    var bankTab = [];
-    for (var j = 0; j < bankTabLength; j++) {
-        var bankTabItem = reader.getUint16();
-        var bankTabItemQuantity = reader.getUint32();
-        bankTab.push(bankTabItem + ":" + bankTabItemQuantity);
-    }
-    raidbankTabs.push(bankTab);
-}
-var raiddefaultItemTabs = new Map();
-const raiddefaultItemTabsLength = reader.getUint32();
-for (var i = 0; i < raiddefaultItemTabsLength; i++) {
-    var itemTabId = reader.getUint16();
-    var itemTabName = reader.getUint8();
-    raiddefaultItemTabs.set(itemTabId, itemTabName);
-}
-const raidcustomSortOrderLength = reader.getUint32();
-var raidcustomSortOrder = [];
-for (var i = 0; i < raidcustomSortOrderLength; i++) {
-    var customSortOrderItem = reader.getUint16();
-    raidcustomSortOrder.push(customSortOrderItem);
-}
-const raidglowingItemsLength = reader.getUint32();
-var raidglowingItems = [];
-for (var i = 0; i < raidglowingItemsLength; i++) {
-    var glowingItem = reader.getUint16();
-    raidglowingItems.push(glowingItem);
-}
-var raidtabIcons = new Map();
-const raidtabIconsLength = reader.getUint32();
-for (var i = 0; i < raidtabIconsLength; i++) {
-    var itemTabId = reader.getUint8();
-    var itemTabName = reader.getUint16();
-    raidtabIcons.set(itemTabId, itemTabName);
-}
+var raidbankTabs = reader.getArray(
+    (reader) => reader.getMap(
+        (reader) => reader.getUint16(),
+        (reader) => reader.getUint32()
+    )
+);
+var raiddefaultItemTabs = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint8())
+var raidcustomSortOrder = reader.getArray((reader) => reader.getUint16());
+var raidglowingItems = reader.getArray((reader) => reader.getUint16());
+var raidtabIcons = reader.getMap((reader) => reader.getUint8(), (reader) => reader.getUint16());
 
 const raidWave = reader.getUint32();
 const raidWaveProgress = reader.getUint32();
 const raidKillCount = reader.getUint32();
 const raidStart = reader.getFloat64();
-const raidOwnedCrateItems = [];
-const raidOwnedCrateItemsLength = reader.getUint32();
-for (var i = 0; i < raidOwnedCrateItemsLength; i++) {
-    var raidOwnedCrateItem = reader.getUint16();
-    raidOwnedCrateItems.push(raidOwnedCrateItem);
-}
+const raidOwnedCrateItems = reader.getArray((reader) => reader.getUint16());
 
-var raidRandomModifiers = [];
-const raidRandomModifiersLength = reader.getUint32();
-for (var i = 0; i < raidRandomModifiersLength; i++) {
-    var raidEnemyModifier = reader.getUint16();
-    var raidEnemyModifierValue = reader.getFloat64();
-    var raidEnemyModifierScopeKey = reader.getUint32();
-    var raidEnemyModifierResult = "";
-    if (raidEnemyModifierScopeKey & 1) {
-        raidEnemyModifierResult += "skill:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 2) {
-        raidEnemyModifierResult += "damageType:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 4) {
-        raidEnemyModifierResult += "realm:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 8) {
-        raidEnemyModifierResult += "currency:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 16) {
-        raidEnemyModifierResult += "category:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 32) {
-        raidEnemyModifierResult += "action:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 64) {
-        raidEnemyModifierResult += "subcategory:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 128) {
-        raidEnemyModifierResult += "item:"+getUint16();
-    }
-    if (raidEnemyModifierScopeKey & 256) {
-        raidEnemyModifierResult += "effectGroup:"+getUint16();
-    }
-    raidRandomModifiers.push(raidEnemyModifier + ":" + raidEnemyModifierValue + ":" + raidEnemyModifierScopeKey + ":" + raidEnemyModifierResult);
-}
+var raidRandomModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+    var modifiers = ["value: " + reader.getFloat64(), "modifierKey: " + reader.getUint32()];
+    for (var i = 1; i <= 256; i *= 2)
+        if (modifiers[1] & i) {
+            modifiers.push("skill: "+getUint16());
+        }
+    return modifiers;
+});
 const raidSelectedPositiveModifier = reader.getBoolean();
-var raidItemWeapons = [];
-const raidWeaponsLength = reader.getUint32();
-for (var i = 0; i < raidWeaponsLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemWeapons.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
-var raidItemArmour = [];
-const raidArmourLength = reader.getUint32();
-for (var i = 0; i < raidArmourLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemArmour.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
-var raidItemAmmo = [];
-const raidAmmoLength = reader.getUint32();
-for (var i = 0; i < raidAmmoLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemAmmo.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
-var raidItemRunes = [];
-const raidRunesLength = reader.getUint32();
-for (var i = 0; i < raidRunesLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemRunes.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
-var raidItemFoods = [];
-const raidFoodsLength = reader.getUint32();
-for (var i = 0; i < raidFoodsLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemFoods.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
-var raidItemPassives = [];
-const raidPassivesLength = reader.getUint32();
-for (var i = 0; i < raidPassivesLength; i++) {
-    var raidWeapon = reader.getUint16();
-    var raidWeaponQty = reader.getUint32();
-    var raidWeaponAlt = reader.getBoolean();
-    raidItemPassives.push(raidWeapon + ":" + raidWeaponQty + ":" + raidWeaponAlt);
-}
+var raidItemWeapons = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
+const raidItemArmour = reader.getMap(
+    (reader) => reader.getUint16(), 
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
+const raidItemAmmo = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
+const raidItemRunes = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
+const raidItemFoods = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
+const raidItemPassives = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => ["qty: " + reader.getUint32(), "alt: " + reader.getBoolean()]
+);
 const raidItemCategory = reader.getUint8();
 const raidPosMods = reader.getUint8();
 const raidNegMods = reader.getUint8();
 const raidPaused = reader.getBoolean();
-var raidHistories = [];
-const raidHistoriesLength = reader.getUint32();
-for (var i = 0; i < raidHistoriesLength; i++) {
-    var raidSkills = [];
-    const raidSkillsLength = reader.getUint32();
-    for (var j = 0; j < raidSkillsLength; j++) {
-        var raidSkill = reader.getUint32();
-        raidSkills.push(raidSkill);
-    }
-    var raidEquipments = [];
-    const raidEquipmentsLength = reader.getUint32();
-    for (var j = 0; j < raidEquipmentsLength; j++) {
-        var raidEquipment = reader.getUint16();
-        raidEquipments.push(raidEquipment);
-    }
+var raidHistories = reader.getArray((reader) => {
+    var raidSkills = reader.getArray((reader) => reader.getUint32());
+    var raidEquipments = reader.getArray((reader) => reader.getUint16());
     var ammo = reader.getUint32();
-    var inventories = [];
-    const inventoriesLength = reader.getUint32();
-    for (var j = 0; j < inventoriesLength; j++) {
-        var item = reader.getUint16();
-        var qty = reader.getUint32();
-        inventories.push(item + ":" + qty);
-    }
+    var inventories = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32())
     var food = reader.getUint16();
     var foodQty = reader.getUint32();
     var wave = reader.getUint32();
@@ -863,54 +608,26 @@ for (var i = 0; i < raidHistoriesLength; i++) {
         coins: coins,
         difficulty: difficuilty
     };
-    raidHistories.push(raidHistory);
-}
+    return raidHistory;
+})
 
 // Goblin Complete
 
 // Minibar Start
-var MinibarItems = [];
-const MinibarItemsLength = reader.getUint32();
-for (var i = 0; i < MinibarItemsLength; i++) {
-    var MinibarItem = reader.getUint16();
-    var MinibarItemValues = [];
-    var MinibarItemValuesLength = reader.getUint32();
-    for (var j = 0; j < MinibarItemValuesLength; j++) {
-        var MinibarItemValue = reader.getUint16();
-        MinibarItemValues.push(MinibarItemValue);
-    }
-    MinibarItems.push(MinibarItem + ":" + MinibarItemValues);
-}
+var MinibarItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getArray((reader) => reader.getUint16()));
 // Minibar Complete
 
 // Pets Start
-var petList = [];
-const petListLength = reader.getUint32();
-for (var i = 0; i < petListLength; i++) {
-    var petId = reader.getUint16();
-    petList.push(petId);
-}
+var petList = reader.getArray((reader) => reader.getUint16());
 // Pets Complete
 
 // Shop Start
-var shopItems = [];
-const shopItemsLength = reader.getUint32();
-for (var i = 0; i < shopItemsLength; i++) {
-    var shopItem = reader.getUint16();
-    var shopItemQty = reader.getUint32();
-    shopItems.push(shopItem + ":" + shopItemQty);
-}
+var shopItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 const purchaseQty = reader.getFloat64();
 // Shop Complete
 
 // Item Charges Start
-var itemCharges = [];
-const itemChargesLength = reader.getUint32();
-for (var i = 0; i < itemChargesLength; i++) {
-    var itemCharge = reader.getUint16();
-    var itemChargeQty = reader.getUint32();
-    itemCharges.push(itemCharge + ":" + itemChargeQty);
-}
+var itemCharges = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 // Item Charges Complete
 
 const tutorialComplete = reader.getBoolean();
@@ -919,284 +636,69 @@ if (!tutorialComplete){
 }
 
 // Start Potions
-var potionList = [];
-const potionListLength = reader.getUint32();
-for (var i = 0; i < potionListLength; i++) {
-    var potionId = reader.getUint16();
-    var potionName = reader.getUint16();
-    var potionQty = reader.getUint32();
-    potionList.push(potionId + ":" + potionName + ":" + potionQty);
-}
-var potionReuse = [];
-const potionReuseLength = reader.getUint32();
-for (var i = 0; i < potionReuseLength; i++) {
-    var potionReuseId = reader.getUint16();
-    potionReuse.push(potionReuseId);
-}
+var potionList = reader.getMap((reader) => reader.getUint16(), (reader) => [reader.getUint16(), reader.getUint32()]);
+var potionReuse = reader.getArray((reader) => reader.getUint16());
 // End Potions
 
 // Start Stats
-var woodcuttingStats = [];
-const woodcuttingStatsLength = reader.getUint32();
-for (var i = 0; i < woodcuttingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    woodcuttingStats.push(stat + ":" + statValue);
-}
-var fishingStats = [];
-const fishingStatsLength = reader.getUint32();
-for (var i = 0; i < fishingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    fishingStats.push(stat + ":" + statValue);
-}
-var firemakingStats = [];
-const firemakingStatsLength = reader.getUint32();
-for (var i = 0; i < firemakingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    firemakingStats.push(stat + ":" + statValue);
-}
-var cookingStats = [];
-const cookingStatsLength = reader.getUint32();
-for (var i = 0; i < cookingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    cookingStats.push(stat + ":" + statValue);
-}
-var miningStats = [];
-const miningStatsLength = reader.getUint32();
-for (var i = 0; i < miningStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    miningStats.push(stat + ":" + statValue);
-}
-var smithingStats = [];
-const smithingStatsLength = reader.getUint32();
-for (var i = 0; i < smithingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    smithingStats.push(stat + ":" + statValue);
-}
-var attackStats = [];
-const attackStatsLength = reader.getUint32();
-for (var i = 0; i < attackStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    attackStats.push(stat + ":" + statValue);
-}
-var strengthStats = [];
-const strengthStatsLength = reader.getUint32();
-for (var i = 0; i < strengthStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    strengthStats.push(stat + ":" + statValue);
-}
-var defenceStats = [];
-const defenceStatsLength = reader.getUint32();
-for (var i = 0; i < defenceStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    defenceStats.push(stat + ":" + statValue);
-}
-var hitpointsStats = [];
-const hitpointsStatsLength = reader.getUint32();
-for (var i = 0; i < hitpointsStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    hitpointsStats.push(stat + ":" + statValue);
-}
-var theivingStats = [];
-const theivingStatsLength = reader.getUint32();
-for (var i = 0; i < theivingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    theivingStats.push(stat + ":" + statValue);
-}
-var farmingStats = [];
-const farmingStatsLength = reader.getUint32();
-for (var i = 0; i < farmingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    farmingStats.push(stat + ":" + statValue);
-}
-var rangedStats = [];
-const rangedStatsLength = reader.getUint32();
-for (var i = 0; i < rangedStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    rangedStats.push(stat + ":" + statValue);
-}
-var fletchingStats = [];
-const fletchingStatsLength = reader.getUint32();
-for (var i = 0; i < fletchingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    fletchingStats.push(stat + ":" + statValue);
-}
-var craftingStats = [];
-const craftingStatsLength = reader.getUint32();
-for (var i = 0; i < craftingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    craftingStats.push(stat + ":" + statValue);
-}
-var runecraftingStats = [];
-const runecraftingStatsLength = reader.getUint32();
-for (var i = 0; i < runecraftingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    runecraftingStats.push(stat + ":" + statValue);
-}
-var magicStats = [];
-const magicStatsLength = reader.getUint32();
-for (var i = 0; i < magicStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    magicStats.push(stat + ":" + statValue);
-}
-var prayerStats = [];
-const prayerStatsLength = reader.getUint32();
-for (var i = 0; i < prayerStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    prayerStats.push(stat + ":" + statValue);
-}
-var slayerStats = [];
-const slayerStatsLength = reader.getUint32();
-for (var i = 0; i < slayerStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    slayerStats.push(stat + ":" + statValue);
-}
-var herbloreStats = [];
-const herbloreStatsLength = reader.getUint32();
-for (var i = 0; i < herbloreStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    herbloreStats.push(stat + ":" + statValue);
-}
-var agilityStats = [];
-const agilityStatsLength = reader.getUint32();
-for (var i = 0; i < agilityStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    agilityStats.push(stat + ":" + statValue);
-}
-var summoningStats = [];
-const summoningStatsLength = reader.getUint32();
-for (var i = 0; i < summoningStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    summoningStats.push(stat + ":" + statValue);
-}
+var woodcuttingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var fishingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var firemakingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var cookingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var miningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var smithingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var attackStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var strengthStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var defenceStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var hitpointsStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var theivingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var farmingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var rangedStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var fletchingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var craftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var runecraftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var magicStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var prayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var slayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var herbloreStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var agilityStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var summoningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
 
 
 
 
 
 
-var itemsStats = [];
-const itemsStatsLength = reader.getUint32();
-for (var i = 0; i < itemsStatsLength; i++) {
-    var mappedStatId = reader.getUint16();
-    var mappedStats = [];
-    var mappedStatsLength = reader.getUint32();
-    for (var j = 0; j < mappedStatsLength; j++) {
-        var stat = reader.getUint32();
-        var statValue = reader.getFloat64();
-        mappedStats.push(stat + ":" + statValue);
-    }
-    itemsStats.push(mappedStatId + ":" + mappedStats);
-}
-var monstersStats = [];
-const monstersStatsLength = reader.getUint32();
-for (var i = 0; i < monstersStatsLength; i++) {
-    var mappedStatId = reader.getUint16();
-    var mappedStats = [];
-    var mappedStatsLength = reader.getUint32();
-    for (var j = 0; j < mappedStatsLength; j++) {
-        var stat = reader.getUint32();
-        var statValue = reader.getFloat64();
-        mappedStats.push(stat + ":" + statValue);
-    }
-    monstersStats.push(mappedStatId + ":" + mappedStats);
-}
+var itemsStats = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => reader.getMap(
+        (reader) => reader.getUint32(),
+        (reader) => reader.getFloat64()
+    )
+);
+
+var monstersStats = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => reader.getMap(
+        (reader) => reader.getUint32(),
+        (reader) => reader.getFloat64()
+    )
+);
 
 
 
 
 
-var generalStats = [];
-const generalStatsLength = reader.getUint32();
-for (var i = 0; i < generalStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    generalStats.push(stat + ":" + statValue);
-}
-var combatStats = [];
-const combatStatsLength = reader.getUint32();
-for (var i = 0; i < combatStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    combatStats.push(stat + ":" + statValue);
-}
-var goblinStats = [];
-const goblinStatsLength = reader.getUint32();
-for (var i = 0; i < goblinStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    goblinStats.push(stat + ":" + statValue);
-}
-var astrologyStats = [];
-const astrologyStatsLength = reader.getUint32();
-for (var i = 0; i < astrologyStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    astrologyStats.push(stat + ":" + statValue);
-}
-var shopStats = [];
-const shopStatsLength = reader.getUint32();
-for (var i = 0; i < shopStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    shopStats.push(stat + ":" + statValue);
-}
-var townshipStats = [];
-const townshipStatsLength = reader.getUint32();
-for (var i = 0; i < townshipStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    townshipStats.push(stat + ":" + statValue);
-}
-var cartographyStats = [];
-const cartographyStatsLength = reader.getUint32();
-for (var i = 0; i < cartographyStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    cartographyStats.push(stat + ":" + statValue);
-}
-var archaeologyStats = [];
-const archaeologyStatsLength = reader.getUint32();
-for (var i = 0; i < archaeologyStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    archaeologyStats.push(stat + ":" + statValue);
-}
-var corruptionStats = [];
-const corruptionStatsLength = reader.getUint32();
-for (var i = 0; i < corruptionStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    corruptionStats.push(stat + ":" + statValue);
-}
-var harvestingStats = [];
-const harvestingStatsLength = reader.getUint32();
-for (var i = 0; i < harvestingStatsLength; i++) {
-    var stat = reader.getUint32();
-    var statValue = reader.getFloat64();
-    harvestingStats.push(stat + ":" + statValue);
-}
+var generalStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var combatStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var goblinStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var astrologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var shopStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var townshipStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var cartographyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var archaeologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var corruptionStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+var harvestingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
 // End Stats
 
 // Start Settings
@@ -1281,12 +783,7 @@ const settingtoggleBirthdayEvent = reader.getBoolean();
 const settingtoggleDiscordRPC = reader.getBoolean();
 const settinggenericArtefactAllButOne = reader.getBoolean();
 
-const settinghiddenMasteryNamespaces = [];
-const settinghiddenMasteryNamespacesLength = reader.getUint32();
-for (var i = 0; i < settinghiddenMasteryNamespacesLength; i++) {
-    var settinghiddenMasteryNamespace = reader.getString();
-    settinghiddenMasteryNamespaces.push(settinghiddenMasteryNamespace);
-}
+const settinghiddenMasteryNamespaces = reader.getArray((reader) => reader.getString());
 const settingenableDoubleClickEquip = reader.getBoolean();
 const settingenableDoubleClickOpen = reader.getBoolean();
 const settingenableDoubleClickBury = reader.getBoolean();
@@ -1318,182 +815,111 @@ const settingenableSwipeSidebar = reader.getBoolean();
 
 // Settings Complete
 
-const newsLength = reader.getUint32();
-var news = [];
-for (var i = 0; i < newsLength; i++) {
-    var newsTitle = reader.getString();
-    news.push(newsTitle);
-}
+var news = reader.getArray((reader) => reader.getString());
 
 const lastLoadedGameVersion = reader.getString();
 
-var scheduledPushNotifications = [];
-const scheduledPushNotificationsLength = reader.getUint32();
-for (var i = 0; i < scheduledPushNotificationsLength; i++) {
-    var scheduledPushNotification = {
+var scheduledPushNotifications = reader.getArray((reader) => {
+    return {
         id: reader.getString(),
         startDate: reader.getFloat64(),
         endDate: reader.getFloat64(),
         notificationType: reader.getUint8(),
         platform: reader.getString(),
     }
-    scheduledPushNotifications.push(scheduledPushNotification);
-}
+});
 
 // Start Skills
-var skills = [];
-const skillsLength = reader.getUint32();
-for (var i = 0; i < skillsLength; i++) {
-    
-    var skill = reader.getUint16();
+var skills = reader.getMap((reader) => reader.getUint16(), (reader) => {
+    var skillMap = new Map();
     var skillSize = reader.getUint32();
-    var currentSize = 31;
-    var skillXP = reader.getFloat64();
-    var skillUnlocked = reader.getBoolean();
-    var relics = [];
-    const relicsLength = reader.getUint32();
-    for (var j = 0; j < relicsLength; j++) {
-        var relic = reader.getUint16();
-        currentSize += 2;
-        var foundRelics = [];
-        const foundRelicsLength = reader.getUint32();
-        currentSize += 4;
-        for (var k = 0; k < foundRelicsLength; k++) {
-            var foundRelickey = reader.getUint16();
-            currentSize += 2;
-            var foundRelicvalue = reader.getUint8();
-            currentSize += 1;
-            foundRelics.push(foundRelickey + ":" + foundRelicvalue);
-        }
-        relics.push(relic + ":" + foundRelics);
+    const startOffset = reader.offset;
+    skillMap.set("dataSize", skillSize);
+    skillMap.set("xp", reader.getFloat64());
+    skillMap.set("skillUnlocked", reader.getBoolean());
+    skillMap.set("relics", reader.getMap(
+        (reader) => reader.getUint16(),
+        (reader) => reader.getMap(
+            (reader) => reader.getUint16(),
+            (reader) => reader.getUint8()
+        )
+    ));
+    skillMap.set("levelCap", reader.getInt16());
+    skillMap.set("abyssalLevelCap", reader.getInt16());
+    skillMap.set("skillTrees", reader.getMap(
+        (reader) => reader.getUint16(),
+        (reader) => [reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()), reader.getUint8()]
+    ));
+    skillMap.set("abyssalXP", reader.getFloat64());
+    skillMap.set("realm", reader.getUint16());
+    var remaining = skillSize + startOffset - reader.offset;
+    if (remaining > 0) {
+        skillMap.set("excessData", reader.getFixedLengthBuffer(remaining));
     }
-    var levelCap = reader.getInt16();
-    var abyssalLevelCap = reader.getInt16();
-    var skillTrees = [];
-    const skillTreesLength = reader.getUint32();
-    for (var j = 0; j < skillTreesLength; j++) {
-        var skillTree = reader.getUint16();
-        currentSize += 2;
-        var skillTreePoints = [];
-        const skillTreePointsLength = reader.getUint32();
-        currentSize += 4;
-        for (var k = 0; k < skillTreePointsLength; k++) {
-            var skillTreePoint = reader.getUint16();
-            currentSize += 2;
-            var skillTreePointUnlocked = reader.getBoolean();
-            currentSize += 1
-            skillTreePoints.push(skillTreePoint + ":" + skillTreePointUnlocked);
-        }
-        var skillTreePoint = reader.getUint8();
-        currentSize += 1;
-        skillTrees.push(skillTree + ":" + skillTreePoints + ":" + skillTreePoint);
-    }
-    var abyssalXP = reader.getFloat64();
-    var realm = reader.getUint16();
-    var skillSize = skillSize - currentSize;
-    if (skillSize > 0) {
-        var data = reader.getFixedLengthBuffer(skillSize);
-    }
-    skills.push(skill + ":" + skillSize + ":" + skillXP + ":" + skillUnlocked + ":" + relics + ":" + levelCap + ":" + abyssalLevelCap + ":" + skillTrees + ":" + abyssalXP + ":" + realm + ":" + data);
+    return skillMap;
     
-}
+})
 // Skills Complete
 
 // Mods Start
 
-var mods = [];
-const modsLength = reader.getUint32();
-for (var i = 0; i < modsLength; i++) {
-    var mod = reader.getUint32();
-    var modSetting = reader.getString();
-    var modCharacter = reader.getString();
-    mods.push(mod + ":" + modSetting + ":" + modCharacter);
-}
+var mods = reader.getMap(
+    (reader) => reader.getUint32(),
+    (reader) => [reader.getString(), reader.getString()]
+);
 
 // Mods Complete
 
 const completion = reader.getString();
 
-var keyBindings = [];
-const keyBindingsLength = reader.getUint32();
-for (var i = 0; i < keyBindingsLength; i++) {
-    var keyBinding = reader.getUint16();
-    var keys = [];
-    const keysLength = reader.getUint32();
-    for (var j = 0; j < keysLength; j++) {
-        if (reader.getBoolean()) {
-            keys.push(reader.getString() + ":" + reader.getBoolean() + ":" + reader.getBoolean() + ":" + reader.getBoolean() + ":" + reader.getBoolean());
-        }
-    }
-    keyBindings.push(keyBinding + ":" + keys);
-}
+var keyBindings = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => reader.getArray(
+        (reader) => {
+            if (reader.getBoolean()) {
+                return [reader.getString(), reader.getBoolean(), reader.getBoolean(), reader.getBoolean(), reader.getBoolean()]
+        }}
+    )
+);
 
-var birthdayCompletions = [];
-const birthdayCompletionsLength = reader.getUint32();
-for (var i = 0; i < birthdayCompletionsLength; i++) {
-    var birthdayCompletion = reader.getBoolean();
-    birthdayCompletions.push(birthdayCompletion);
-}
+var birthdayCompletions = reader.getArray((reader) => reader.getBoolean());
 const clueHuntStep = reader.getInt8();
 
-var currencies = [];
-const currenciesLength = reader.getUint32();
-for (var i = 0; i < currenciesLength; i++) {
-    var currency = reader.getUint16();
-    var currencyQty = reader.getFloat64();
-    var currencyStats = [];
-    const currencyStatsLength = reader.getUint32();
-    for (var j = 0; j < currencyStatsLength; j++) {
-        currencyStats.push(reader.getUint32() + ":" + reader.getFloat64());
+var currencies = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => {
+        var currency = new Map();
+        currency.set("qty", reader.getFloat64());
+        currency.set("stats", reader.getMap(
+            (reader) => reader.getUint32(),
+            (reader) => reader.getFloat64()
+        ))
+        currency.set("currencySkills", reader.getMap(
+            (reader) => reader.getUint16(),
+            (reader) => reader.getMap(
+                (reader) => reader.getUint32(),
+                (reader) => reader.getFloat64()
+            )
+        ))
+        return currency;
     }
-    var currencySkills = [];
-    const currencySkillsLength = reader.getUint32();
-    for (var k = 0; k < currencySkillsLength; k++) {
-        var currencySkill = reader.getUint16();
-        var currencySkillValues = [];
-        const currencySkillValuesLength = reader.getUint32();
-        for (var l = 0; l < currencySkillValuesLength; l++) {
-            currencySkillValues.push(reader.getUint32() + ":" + reader.getFloat64())
-        }
-        currencySkills.push(currencySkill + ":" + currencySkillValues)
+)
+
+var areaCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+var strongholdCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+
+var randomIncreases = reader.getMap(
+    (reader) => reader.getUint16(),
+    (reader) => {
+        var increases = new Map();
+        increases.set("given", reader.getArray((reader) => reader.getUint16()))
+        increases.set("increases", reader.getArray((reader) => reader.getUint16()))
+        return increases;
     }
-    currencies.push(currency + ":" + currencyQty + ":" + currencyStats + ":" + currencySkills);
-}
+);
+console.log(randomIncreases);
 
-var areaCompletions = [];
-const areaCompltionsLength = reader.getUint32();
-for (var i = 0; i < areaCompltionsLength; i++) {
-    areaCompletions.push(reader.getUint16() + ":" + reader.getUint32());
-}
-var strongholdCompletions = [];
-const strongholdCompltionsLength = reader.getUint32();
-for (var i = 0; i < strongholdCompltionsLength; i++) {
-    strongholdCompletions.push(reader.getUint16() + ":" + reader.getUint32());
-}
-
-var randomIncreases = [];
-const randomIncreasesLength = reader.getUint32();
-for (var i = 0; i < randomIncreasesLength; i++) {
-    var capIncreasesLeft = reader.getUint16();
-    var given = [];
-    const givenLength = reader.getUint32();
-    for (var j = 0; j < givenLength; j++) {
-        given.push(reader.getUint16());
-    }
-    var increases = [];
-    const increasesLength = reader.getUint32();
-    for (var j = 0; j < increasesLength; j++) {
-        increases.push(reader.getUint16());
-    }
-
-    randomIncreases.push(capIncreasesLeft + ":" + given + ":" + increases);
-}
-
-var capIncreases = [];
-const capIncreasesLength = reader.getUint32();
-for (var i = 0; i < capIncreasesLength; i++) {
-    capIncreases.push(getUint16());
-}
+var capIncreases = reader.getArray((reader) => reader.getUint16());
 
 const levelCapIncreasesBought = reader.getUint16();
 const abyssalLevelCapIncreasesBought = reader.getUint16();
