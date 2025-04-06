@@ -1,12 +1,13 @@
-import * as fflate from 'fflate';
+import { unzlibSync, strToU8 } from 'fflate';
+import { writeFileSync } from 'node:fs';
 class Reader {
     saveString = "";
     parsedString = "";
     dataView = "";
-    offset = 10;
+    offset = 6;
 
     parseString() {
-        this.parsedString = fflate.unzlibSync(fflate.strToU8(atob(this.saveString), true)).buffer;
+        this.parsedString = unzlibSync(strToU8(atob(this.saveString), true)).buffer;
         this.dataView = new DataView(this.parsedString);
     }
 
@@ -104,6 +105,23 @@ reader.saveString = "eJy8fXlgXFW9/znn3pnsSfcWRDZB8WmlWdu6cW/StA00TUjS1gUNk2TSDJ3
 
 reader.parseString();
 
+
+const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
+
+function findItemFromNamespace(item) {
+    for (var i = 0; i < knownNamespaces.length; i++){
+        const value = headerNamespaces.get(knownNamespaces[i]);
+        var result = undefined;
+        value.forEach((v, k) => {
+            if (v == item)
+                result = k;
+        });
+        if (result != undefined) return result;
+    }
+    return "Unknown";
+}
+
+const headerSize = reader.getUint32();
 const headerNamespaces = reader.getMap(
     (reader) => reader.getString(), 
     (reader) => reader.getMap(
@@ -111,6 +129,9 @@ const headerNamespaces = reader.getMap(
             (reader) => reader.getUint16()
         )
 );
+
+//writeFileSync('./test.txt', JSON.stringify(headerNamespaces, (key, value) => (value instanceof Map ? [...value] : value)));
+
 
 const headerSaveVersion = reader.getUint32();
 if (headerSaveVersion != 130) throw new Error("Unsupported save version: " + headerSaveVersion);
@@ -129,8 +150,28 @@ if (reader.getBoolean()) {
     var headerModProfileName = reader.getString();
     var headerMods = reader.getArray((reader) => reader.getUint32());
 }
-const unknown = reader.getUint32(); // Unknown
-
+const data = {
+    header: {
+        saveVersion: headerSaveVersion,
+        saveName: headerSaveName,
+        gameMode: headerGameMode,
+        skillLevel: headerSkillLevel,
+        gp: headerGp,
+        activeTraining: headerActiveTraining,
+        activeTrainingName: headerActiveTrainingName,
+        tickTime: headerTickTime,
+        saveTime: headerSaveTime,
+        activeNamespaces: headerActiveNamespaces,
+        modProfileId: headerModProfileId,
+        modProfileName: headerModProfileName,
+        mods: headerMods
+    }
+};
+//console.log(data);
+const bodySize = reader.getUint32(); // Unknown
+console.log(reader.offset);
+console.log(unknown);
+//console.log(unknown);
 const tickTime = reader.getFloat64();
 const saveTime = reader.getFloat64();
 var activeAction = 0;
@@ -154,6 +195,7 @@ var bankTabs = reader.getArray(
         (reader) => reader.getUint32()
     )
 );
+console.log(gameMode);
 
 var defaultItemTabs = reader.getMap(
     (reader) => reader.getUint16(),
@@ -213,6 +255,7 @@ if (reader.getBoolean()) {
 if (reader.getBoolean()) {
     var magic = reader.getUint16();
 }
+
 const prayerPoints = reader.getUint32();
 const selectedEquipmentSet = reader.getUint16();
 var equipmentSets = reader.getArray((reader) => {
@@ -917,10 +960,11 @@ var randomIncreases = reader.getMap(
         return increases;
     }
 );
-console.log(randomIncreases);
 
 var capIncreases = reader.getArray((reader) => reader.getUint16());
 
 const levelCapIncreasesBought = reader.getUint16();
 const abyssalLevelCapIncreasesBought = reader.getUint16();
 const newRealm = reader.getUint16();
+
+console.log(reader.offset);
