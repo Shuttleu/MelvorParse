@@ -1088,15 +1088,12 @@ var skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
             (reader) => [reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()), reader.getUint8()]
         ),
         abyssalXP: reader.getFloat64(),
-        realm: reader.getUint16(),
-        mastery: undefined,
-        extra: undefined,
-        excessData: undefined
+        realm: reader.getUint16()
     }
     var remaining = endOffset - reader.offset;
     if (remaining > 0) {
         const skillName = findItemFromNamespace(k);
-        if (skillName != "Township" && skillName != "Harvesting" && skillName != "Corruption") {
+        if (!["Township", "Harvesting", "Corruption", "Cartography"].includes(skillName)) {
             skill.mastery = {
                 actionMastery: reader.getMap(
                     (reader) => reader.getUint16(),
@@ -1107,51 +1104,157 @@ var skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
                     (reader) => reader.getFloat64()    
                 ),
             }
-            if (skillName == "Archaeology") {
-                skill.extra = {
-                    active: reader.getBoolean(),
-                    timer: {
-                        ticksLeft: reader.getUint32(),
-                        maxTicks: reader.getUint32(),
-                        active: reader.getBoolean()
-                    },
-                    digsite: reader.getBoolean() ? reader.getUint16() : undefined,
-                    digsites: reader.getMap(
-                        (reader) => reader.getUint16(),
-                        (reader) => {
-                            return {
-                                maps: reader.getArray(
-                                    (reader) => {
-                                        return {
-                                            upgradeActions: reader.getUint32(),
-                                            charges: reader.getUint32(),
-                                            artefactValuesTiny: reader.getUint16(),
-                                            artefactValuesSmall: reader.getUint16(),
-                                            artefactValuesMedium: reader.getUint16(),
-                                            artefactValuesLarge: reader.getUint16(),
-                                            refinements: reader.getMap((reader) => reader.getUint16(), (reader) => {
-                                                var modifiers = [reader.getFloat64(), reader.getUint32()];
-                                                for (var i = 1; i <= 256; i *= 2)
-                                                    if (modifiers[1] & i) {
-                                                        modifiers.push(getUint16());
-                                                    }
-                                                return modifiers;
-                                            })
-                                        }
-                                    }
-                                ),
-                                selectedMap: reader.getInt8(),
-                                selectedTools: reader.getArray((reader) => reader.getUint16()),
-                                selectedUpgrade: reader.getUint8()
-                            }
-                        }
-                    ),
-                    museum: {
-                        items: reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()),
-                        donated: reader.getArray((reader) => reader.getUint16())
-                    },
-                    hiddenDigsites: reader.getArray((reader) => reader.getUint16())
+            skill.extra = {
+                active: reader.getBoolean(),
+                timer: {
+                    ticksLeft: reader.getUint32(),
+                    maxTicks: reader.getUint32(),
+                    active: reader.getBoolean()
                 }
+            }
+        }
+        if (skillName == "Archaeology") {
+            skill.extra.skillSpecific = {
+                digsite: reader.getBoolean() ? reader.getUint16() : undefined,
+                digsites: reader.getMap(
+                    (reader) => reader.getUint16(),
+                    (reader) => {
+                        return {
+                            maps: reader.getArray(
+                                (reader) => {
+                                    return {
+                                        upgradeActions: reader.getUint32(),
+                                        charges: reader.getUint32(),
+                                        artefactValuesTiny: reader.getUint16(),
+                                        artefactValuesSmall: reader.getUint16(),
+                                        artefactValuesMedium: reader.getUint16(),
+                                        artefactValuesLarge: reader.getUint16(),
+                                        refinements: reader.getMap((reader) => reader.getUint16(), (reader) => {
+                                            var modifiers = [reader.getFloat64(), reader.getUint32()];
+                                            for (var i = 1; i <= 256; i *= 2)
+                                                if (modifiers[1] & i) {
+                                                    modifiers.push(getUint16());
+                                                }
+                                            return modifiers;
+                                        })
+                                    }
+                                }
+                            ),
+                            selectedMap: reader.getInt8(),
+                            selectedTools: reader.getArray((reader) => reader.getUint16()),
+                            selectedUpgrade: reader.getUint8()
+                        }
+                    }
+                ),
+                museum: {
+                    items: reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()),
+                    donated: reader.getArray((reader) => reader.getUint16())
+                },
+                hiddenDigsites: reader.getArray((reader) => reader.getUint16())
+            }
+        } else if (skillName == "Agility") {
+            skill.extra.skillSpecific = {
+                activeObstacle: reader.getInt16(),
+                obstacleBuildCount: reader.getMap(
+                    (reader) => reader.getUint16(),
+                    (reader) => reader.getUint32()
+                ),
+                course: reader.getMap(
+                    (reader) => reader.getUint16(),
+                    (reader) => {
+                        return {
+                            builtObstacles: reader.getMap(
+                                (reader) => reader.getUint8(),
+                                (reader) => reader.getUint16()
+                            ),
+                            builtPillars: reader.getMap(
+                                (reader) => reader.getUint8(),
+                                (reader) => reader.getUint16()
+                            ),
+                            blueprints: reader.getMap(
+                                (reader) => reader.getUint8(),
+                                (reader) => {
+                                    return {
+                                        name: reader.getString(),
+                                        obstacles: reader.getMap(
+                                            (reader) => reader.getUint8(),
+                                            (reader) => reader.getUint16()
+                                        ),
+                                        pillars: reader.getMap(
+                                            (reader) => reader.getUint8(),
+                                            (reader) => reader.getUint16()
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                )
+            }
+        } else if (skillName == "Magic") {
+            skill.extra.skillSpecific = {
+                spell: reader.getBoolean() ? reader.getUint16() : undefined,
+                conversionItem: reader.getBoolean() ? reader.getUint16() : undefined,
+                selectedRecipe: reader.getBoolean() ? reader.getUint16() : undefined
+            }
+        } else if (skillName == "Astrology") {
+            skill.extra.skillSpecific = {
+                studied: reader.getBoolean() ? reader.getUint16() : undefined,
+                explored: reader.getBoolean() ? reader.getUint16() : undefined,
+                actions: reader.getArray((reader) => {
+                    return {
+                        recipie: reader.getUint16(),
+                        standardModsBought: reader.getArray((reader) => reader.getUint8()),
+                        uniqueModsBought: reader.getArray((reader) => reader.getUint8()),
+                        abyssalModsBought: reader.getArray((reader) => reader.getUint8())
+                    }
+                }),
+                dummyRecipies: reader.getArray((reader) => {
+                    return {
+                        recipie: reader.getUint16(),
+                        standardModsBought: reader.getArray((reader) => reader.getUint8()),
+                        uniqueModsBought: reader.getArray((reader) => reader.getUint8()),
+                        abyssalModsBought: reader.getArray((reader) => reader.getUint8())
+                    }
+                })
+            }
+        } else if (skillName == "Cartography") {
+            skill.extra = {
+                worldMaps: reader.getMap(
+                    (reader) => reader.getUint16(),
+                    (reader) => {
+                        return {
+                            worldMap: reader.getMap(
+                                (reader) => reader.getInt16(),
+                                (reader) => reader.getMap(
+                                    (reader) => reader.getInt16(),
+                                    (reader) => reader.getFloat64()
+                                )
+                        
+                            ),
+                            position: [reader.getInt16(), reader.getInt16()],
+                            filterSettings: {
+                                markerSettings: reader.getArray((reader) => reader.getBoolean()),
+                                hiddenFastTravelGroups: reader.getArray((reader) => reader.getUint16())
+                            },
+                            pois: reader.getMap(
+                                (reader) => reader.getUint16(),
+                                (reader) => {
+                                    return {
+                                        discovered: reader.getBoolean(),
+                                        fastTravelUnlocked: reader.getUint8(),
+                                        discoveryMovesLeft: reader.getUint8(),
+                                        surveyOrder: reader.getUint16()
+                                    }
+                                }
+                            ),
+                            bonus: reader.getMap(
+                                (reader) => reader.getUint16(),
+                                (reader) => reader.getBoolean()
+                            )
+                        }
+                    }
+                )
             }
         }
     }
@@ -1163,6 +1266,8 @@ var skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
     
 });
 console.log(skills);
+console.log(skills.get(431));
+console.log(findItemFromNamespace(431));
 // Skills Complete
 
 // Mods Start
