@@ -144,41 +144,39 @@ const headerTickTime = reader.getFloat64();
 const headerSaveTime = reader.getFloat64();
 const headerActiveNamespaces = reader.getArray((reader) => reader.getString());
 
-if (reader.getBoolean()) {
-    var headerModProfileId = reader.getString();
-    var headerModProfileName = reader.getString();
-    var headerMods = reader.getArray((reader) => reader.getUint32());
-}
+const headerMods = reader.getBoolean() ? {
+    profileId: reader.getString(),
+    profileName: reader.getString(),
+    mods: reader.getArray((reader) => reader.getUint32())
+} : undefined
 const bodySize = reader.getUint32();
 const tickTime = reader.getFloat64();
 const saveTime = reader.getFloat64();
-if (reader.getBoolean()) {
-    var activeAction = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var pausedAction = reader.getUint16();
-}
+const activeAction = reader.getBoolean() ? reader.getUint16() : undefined;
+
+const pausedAction = reader.getBoolean() ? reader.getUint16() : undefined;
+
 
 const paused = reader.getBoolean();
 const merchantsPermitRead = reader.getBoolean();
 const gameMode = reader.getUint16();
 const characterName = reader.getString();
 // Bank start
-var lockedItems = reader.getArray((reader) => reader.getUint16());
-var bankTabs = reader.getArray(
+const lockedItems = reader.getArray((reader) => reader.getUint16());
+const bankTabs = reader.getArray(
     (reader) => reader.getMap(
         (reader) => reader.getUint16(),
         (reader) => reader.getUint32()
     )
 );
 
-var defaultItemTabs = reader.getMap(
+const defaultItemTabs = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => reader.getUint8()
 );
-var customSortOrder = reader.getArray((reader) => reader.getUint16());
-var glowingItems = reader.getArray((reader) => reader.getUint16());
-var tabIcons = reader.getMap(
+const customSortOrder = reader.getArray((reader) => reader.getUint16());
+const glowingItems = reader.getArray((reader) => reader.getUint16());
+const tabIcons = reader.getMap(
     (reader) => reader.getUint8(),
     (reader) => reader.getUint16()
 );
@@ -221,40 +219,38 @@ const activeEffects = reader.getMap(
 );
 const firstMiss = reader.getBoolean();
 const barrier = reader.getUint32();
-if (reader.getBoolean()) {
-    var melee = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var ranged = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var magic = reader.getUint16();
-}
+const melee = reader.getBoolean() ? reader.getUint16() : undefined;
+
+const ranged = reader.getBoolean() ? reader.getUint16() : undefined;
+
+const magic = reader.getBoolean() ? reader.getUint16() : undefined;
+
 
 const prayerPoints = reader.getUint32();
 const selectedEquipmentSet = reader.getUint16();
 const equipmentSets = reader.getArray((reader) => {
-    var equipment = reader.getArray((reader) => {
-        var id = reader.getUint16();
-        if (reader.getBoolean()) {
-            var stackable = reader.getUint16();
-            var qty = reader.getUint32();
-        }
-        var quickEquip = reader.getArray((reader) => reader.getUint16());
-        return [id, stackable, qty, quickEquip];
-    });
-    if (reader.getBoolean()) {
-        var spell = reader.getUint16();
+    return {
+        equipment: reader.getArray((reader) => {
+            const id = reader.getUint16();
+            if (reader.getBoolean()) {
+                var stackable = reader.getUint16();
+                var qty = reader.getUint32();
+            }
+            const quickEquip = reader.getArray((reader) => reader.getUint16());
+            return {
+                id: id,
+                stackable: stackable,
+                qty: qty,
+                quickEquip: quickEquip
+            };
+        }),
+        spells: {
+            spell: reader.getBoolean() ? reader.getUint16() : undefined,
+            aura: reader.getBoolean() ? reader.getUint16() : undefined,
+            curse: reader.getBoolean() ? reader.getUint16() : undefined
+        },
+        prayers: reader.getArray((reader) => reader.getUint16())
     }
-    if (reader.getBoolean()) {
-        var aura = reader.getUint16();
-    }
-    if (reader.getBoolean()) {
-        var curse = reader.getUint16();
-    }
-    var spells = [spell, aura, curse]
-    var prayers = reader.getArray((reader) => reader.getUint16());
-    return [equipment, spells, prayers]
 });
 const selectedFoodSlot = reader.getUint32();
 const maxFoodSlot = reader.getUint32();
@@ -309,12 +305,8 @@ const enemyBarrier = reader.getUint32();
 
 const enemyState = reader.getUint8();
 const enemyAttackType = reader.getUint8();
-if (reader.getBoolean()) {
-    var enemy = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var damageType = reader.getUint16();
-}
+const enemy = reader.getBoolean() ? reader.getUint16() : undefined;
+const damageType = reader.getBoolean() ? reader.getUint16() : undefined;
 // Enemy Complete
 // Fight Start
 const fightInProgess = reader.getBoolean();
@@ -323,30 +315,26 @@ const fightSpawnMaxTicks = reader.getUint32();
 const fightSpawnActive = reader.getBoolean();
 const combatActive = reader.getBoolean();
 const combatPassives = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean());
-if (reader.getBoolean()) {
-    var combatArea = reader.getUint8();
-    var combatSubArea = reader.getUint16();
-}
+const combatArea = reader.getBoolean() ? {
+    area: reader.getUint8(),
+    subArea: reader.getUint16()
+} : undefined
 
 const combatAreaProgress = reader.getUint32();
-if (reader.getBoolean()) {
-    var monster = reader.getUint16();
-}
+const monster = reader.getBoolean() ? reader.getUint16() : undefined;
 const combatPaused = reader.getBoolean();
-var loot = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+const loot = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 
 
 
 // Slayer start
 const slayerActive = reader.getBoolean();
-if (reader.getBoolean()) {
-    var slayerTask = reader.getUint16();
-}   
+const slayerTask = reader.getBoolean() ? reader.getUint16() : undefined;
+
 const slayerLeft = reader.getUint32();
 const slayerExtended = reader.getBoolean();
-if (reader.getBoolean()) {
-    var slayerCategory = reader.getUint16();
-}
+const slayerCategory = reader.getBoolean() ? reader.getUint16() : undefined;
+
 const slayerCategories = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 
 const slayerTaskTicksLeft = reader.getUint32();
@@ -354,9 +342,8 @@ const slayerTaskMaxTicks = reader.getUint32();
 const slayerTaskActive = reader.getBoolean();
 const slayerRealm = reader.getUint16();
 
-if (reader.getBoolean()) {
-    var activeEvent = reader.getUint16();
-}
+const activeEvent = reader.getBoolean() ? reader.getUint16() : undefined;
+
 const eventPassives = reader.getArray((reader) => reader.getUint16());
 const eventPassivesSelected = reader.getArray((reader) => reader.getUint16());
 const eventDungeonLength = reader.getUint32();
@@ -403,39 +390,34 @@ const raidactiveEffects = reader.getMap(
 
 const raidfirstMiss = reader.getBoolean();
 const raidbarrier = reader.getUint32();
-if (reader.getBoolean()) {
-    var raidMeleeStyle = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var raidRangedStyle = reader.getUint16();
-}
-if (reader.getBoolean()) {
-    var raidMagicStyle = reader.getUint16();
-}
+const raidMeleeStyle = reader.getBoolean() ? reader.getUint16() : undefined;
+const raidRangedStyle = reader.getBoolean() ? reader.getUint16() : undefined;
+const raidMagicStyle = reader.getBoolean() ? reader.getUint16() : undefined;
 const raidprayerPoints = reader.getUint32();
 const raidselectedEquipmentSet = reader.getUint16();
 const raidequipmentSets = reader.getArray((reader) => {
-    var equipment = reader.getArray((reader) => {
-        var id = reader.getUint16();
-        if (reader.getBoolean()) {
-            var stackable = reader.getUint16();
-            var qty = reader.getUint32();
-        }
-        var quickEquip = reader.getArray((reader) => reader.getUint16());
-        return ["item: " + id, "stackable: " + stackable, "qty: " + qty, "quickEquip: " + quickEquip];
-    });
-    if (reader.getBoolean()) {
-        var spell = reader.getUint16();
+    return {
+        equipment: reader.getArray((reader) => {
+            const id = reader.getUint16();
+            if (reader.getBoolean()) {
+                var stackable = reader.getUint16();
+                var qty = reader.getUint32();
+            }
+            const quickEquip = reader.getArray((reader) => reader.getUint16());
+            return {
+                id: id,
+                stackable: stackable,
+                qty: qty,
+                quickEquip: quickEquip
+            };
+        }),
+        spells: {
+            spell: reader.getBoolean() ? reader.getUint16() : undefined,
+            aura: reader.getBoolean() ? reader.getUint16() : undefined,
+            curse: reader.getBoolean() ? reader.getUint16() : undefined
+        },
+        prayers: reader.getArray((reader) => reader.getUint16())
     }
-    if (reader.getBoolean()) {
-        var aura = reader.getUint16();
-    }
-    if (reader.getBoolean()) {
-        var curse = reader.getUint16();
-    }
-    var spells = [spell, aura, curse]
-    var prayers = reader.getArray((reader) => reader.getUint16());
-    return [equipment, spells, prayers]
 });
 const raidselectedFoodSlot = reader.getUint32();
 const raidmaxFoodSlot = reader.getUint32();
@@ -499,258 +481,22 @@ const raidenemyAttackType = reader.getUint8();
 
 
 
-if (reader.getBoolean()) {
-    var raidenemy = reader.getUint16();
-}
+const raidenemy = reader.getBoolean() ? reader.getUint16() : undefined;
 
-if (reader.getBoolean()) {
-    var goblinName = reader.getString();
-    var goblinHitpoints = reader.getUint32();
-    var goblinAttack = reader.getUint32();
-    var goblinStrength = reader.getUint32();
-    var goblinDefence = reader.getUint32();
-    var goblinRanged = reader.getUint32();
-    var goblinMagic = reader.getUint32();
-    var goblinAttackType = reader.getUint8();
-    var goblinImage = reader.getInt8();
-    var goblinPassives = reader.getArray((reader) => reader.getUint16());
-    var goblinCorruption = reader.getUint32();
-}
+const goblin = reader.getBoolean() ? {
+    name: reader.getString(),
+    hitpoints: reader.getUint32(),
+    attack: reader.getUint32(),
+    strength: reader.getUint32(),
+    defence: reader.getUint32(),
+    ranged: reader.getUint32(),
+    magic: reader.getUint32(),
+    attackType: reader.getUint8(),
+    image: reader.getInt8(),
+    passives: reader.getArray((reader) => reader.getUint16()),
+    corruption: reader.getUint32()
+} : undefined;
 // Enemy Complete
-
-const data = {
-    header: {
-        saveVersion: headerSaveVersion,
-        saveName: headerSaveName,
-        gameMode: headerGameMode,
-        skillLevel: headerSkillLevel,
-        gp: headerGp,
-        activeTraining: headerActiveTraining,
-        activeTrainingName: headerActiveTrainingName,
-        tickTime: headerTickTime,
-        saveTime: headerSaveTime,
-        activeNamespaces: headerActiveNamespaces,
-        modProfileId: headerModProfileId,
-        modProfileName: headerModProfileName,
-        mods: headerMods
-    },
-    tickTime: tickTime,
-    saveTime: saveTime,
-    activeAction: activeAction,
-    pausedAction: pausedAction,
-    paulsed: paused,
-    merchantsPermitRead: merchantsPermitRead,
-    gameMode: gameMode,
-    characterName: characterName,
-    bank: {
-        lockedItems: lockedItems,
-        tabs: bankTabs,
-        defaultTabs: defaultItemTabs,
-        sortOrder: customSortOrder,
-        glowing: glowingItems,
-        icons: tabIcons
-    },
-    combat: {
-        player: {
-            character: {
-                hp: hp,
-                nextAction: nextAction,
-                attackCount: attackCount,
-                nextAttack: nextAttack,
-                isAttacking: isAttacking,
-                firstHit: firstHit,
-                actionTimer: {
-                    ticksLeft: actionTicksLeft,
-                    maxTicks: actionMaxTicks,
-                    active: actionActive
-                },
-                regenTimer :{
-                    ticksLeft: regenTicksLeft,
-                    maxTicks: regenMaxTicks,
-                    active: regenActive
-                },
-                turnsTaken: turnsTaken,
-                bufferedRegen: bufferedRegen,
-                activeEffects: activeEffects,
-                firstMiss: firstMiss,
-                barrier: barrier
-            },
-            meleeType: melee,
-            rangedType: ranged,
-            magicType: magic,
-            prayerPoints: prayerPoints,
-            equipmentSet: selectedEquipmentSet,
-            equipmentSets: equipmentSets,
-            foodSlot: selectedFoodSlot,
-            foodSlots: foodSlots,
-            maxFoodSlot: maxFoodSlot,
-            summoningTimer :{
-                ticksLeft: summonTicksLeft,
-                maxTicks: summonMaxTicks,
-                active: summonActive
-            },
-            soulPoints: soulPoints,
-            unholyPrayerMultiplier: unholyPrayerMultiplier
-        },
-        enemy: {
-            character: {
-                hp: enemyHitpoints,
-                nextAction: enemyAction,
-                attackCount: enemyAttackCount,
-                nextAttack: enemyNextAttack,
-                isAttacking: enemyAttacking,
-                firstHit: enemyFirstHit,
-                actionTimer: {
-                    ticksLeft: enemyActionTicksLeft,
-                    maxTicks: enemyActionMaxTicks,
-                    active: enemyActionActive
-                },
-                regenTimer: {
-                    ticksLeft: enemyRegenTicksLeft,
-                    maxTicks: enemyRegenMaxTicks,
-                    active: enemyRegenActive
-                },
-                turnsTaken: enemyTurnsTaken,
-                bufferedRegen: enemyBufferedRegen,
-                activeEffects: enemyActiveEffects,
-                firstMiss: enemyFirstMiss,
-                barrier: enemyBarrier
-            },
-            state: enemyState,
-            attackType: enemyAttackType,
-            enemy: enemy,
-            damageType: damageType
-        },
-        fightInProgress: fightInProgess,
-        fightTimer: {
-            ticksLeft: fightSpawnTicksLeft,
-            maxTicks: fightSpawnMaxTicks,
-            active: fightSpawnActive
-        },
-        combatActive: combatActive,
-        combatPassives: combatPassives,
-        combatArea: combatArea,
-        combatSubArea: combatSubArea,
-        combatAreaProgress: combatAreaProgress,
-        monster: monster,
-        combatPaused: combatPaused,
-        loot: loot,
-        slayer: {
-            taskActive: slayerActive,
-            task: slayerTask,
-            left: slayerLeft,
-            extended: slayerExtended,
-            category: slayerCategory,
-            categories: slayerCategories,
-            timer: {
-                ticksLeft: slayerTaskTicksLeft,
-                maxTicks: slayerTaskMaxTicks,
-                active: slayerTaskActive
-            },
-            realm: slayerRealm
-        },
-        event: {
-            active: activeEvent,
-            passives: eventPassives,
-            passivesSelected: eventPassivesSelected,
-            dungeonLength: eventDungeonLength,
-            dungeonCompletions: eventDungeonCompletions,
-            activeEventAreas: activeEventAreas,
-            progress: eventProgress,
-            strongholdTier: eventStrongholdTier
-        }
-    },
-    goblinRaid: {
-        player: {
-            character: {
-                hp: raidhp,
-                nextAction: raidnextAction,
-                attackCount: raidattackCount,
-                nextAttack: raidnextAttack,
-                isAttacking: raidisAttacking,
-                firstHit: raidfirstHit,
-                actionTimer: {
-                    ticksLeft: raidactionTicksLeft,
-                    maxTicks: raidactionMaxTicks,
-                    active: raidactionActive
-                },
-                regenTimer :{
-                    ticksLeft: raidregenTicksLeft,
-                    maxTicks: raidregenMaxTicks,
-                    active: raidregenActive
-                },
-                turnsTaken: raidturnsTaken,
-                bufferedRegen: raidbufferedRegen,
-                activeEffects: raidactiveEffects,
-                firstMiss: raidfirstMiss,
-                barrier: raidbarrier
-            },
-            meleeType: raidMeleeStyle,
-            rangedType: raidRangedStyle,
-            magicType: raidMagicStyle,
-            prayerPoints: raidprayerPoints,
-            equipmentSet: raidselectedEquipmentSet,
-            equipmentSets: raidequipmentSets,
-            foodSlot: raidselectedFoodSlot,
-            foodSlots: raidfoodSlots,
-            maxFoodSlot: raidmaxFoodSlot,
-            summoningTimer :{
-                ticksLeft: raidsummonTicksLeft,
-                maxTicks: raidsummonMaxTicks,
-                active: raidsummonActive
-            },
-            soulPoints: raidsoulPoints,
-            unholyPrayerMultiplier: raidunholyPrayerMultiplier,
-            altAttacks: raidAltAttacks
-        },
-        enemy: {
-            character: {
-                hp: raidenemyHitpoints,
-                nextAction: raidenemyAction,
-                attackCount: raidenemyAttackCount,
-                nextAttack: raidenemyNextAttack,
-                isAttacking: raidenemyAttacking,
-                firstHit: raidenemyFirstHit,
-                actionTimer: {
-                    ticksLeft: raidenemyActionTicksLeft,
-                    maxTicks: raidenemyActionMaxTicks,
-                    active: raidenemyActionActive
-                },
-                regenTimer: {
-                    ticksLeft: raidenemyRegenTicksLeft,
-                    maxTicks: raidenemyRegenMaxTicks,
-                    active: raidenemyRegenActive
-                },
-                turnsTaken: raidenemyTurnsTaken,
-                bufferedRegen: raidenemyBufferedRegen,
-                activeEffects: raidenemyActiveEffects,
-                firstMiss: raidenemyFirstMiss,
-                barrier: raidenemyBarrier
-            },
-            state: raidenemyState,
-            attackType: raidenemyAttackType,
-            enemy: raidenemy,
-            goblin: {
-                name: goblinName,
-                hp: goblinHitpoints,
-                attack: goblinAttack,
-                strength: goblinStrength,
-                defence: goblinDefence,
-                ranged: goblinRanged,
-                magic: goblinMagic,
-                attackType: goblinAttackType,
-                image: goblinImage,
-                passives: goblinPassives,
-                corruption: goblinCorruption
-            }
-
-        }
-    }
-
-};
-console.log(data);
-
-
 
 // Fight Start
 const raidfightInProgess = reader.getBoolean();
@@ -758,8 +504,8 @@ const raidfightSpawnTicksLeft = reader.getUint32();
 const raidfightSpawnMaxTicks = reader.getUint32();
 const raidfightSpawnActive = reader.getBoolean();
 const raidcombatActive = reader.getBoolean();
-var raidcombatPassives = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean());
-var raidPlayerModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+const raidcombatPassives = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean());
+const raidPlayerModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
     var modifiers = [reader.getFloat64(), reader.getUint32()];
     for (var i = 1; i <= 256; i *= 2)
         if (modifiers[1] & i) {
@@ -768,7 +514,7 @@ var raidPlayerModifiers = reader.getMap((reader) => reader.getUint16(), (reader)
     return modifiers;
 });
 
-var raidEnemyModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+const raidEnemyModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
     var modifiers = [reader.getFloat64(), reader.getUint32()];
     for (var i = 1; i <= 256; i *= 2)
         if (modifiers[1] & i) {
@@ -780,18 +526,19 @@ var raidEnemyModifiers = reader.getMap((reader) => reader.getUint16(), (reader) 
 const raidState = reader.getUint8();
 const raidDifficulty = reader.getUint8();
 
-var raidlockedItems = reader.getArray((reader) => reader.getUint16());
 
-var raidbankTabs = reader.getArray(
+const raidlockedItems = reader.getArray((reader) => reader.getUint16());
+
+const raidbankTabs = reader.getArray(
     (reader) => reader.getMap(
         (reader) => reader.getUint16(),
         (reader) => reader.getUint32()
     )
 );
-var raiddefaultItemTabs = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint8())
-var raidcustomSortOrder = reader.getArray((reader) => reader.getUint16());
-var raidglowingItems = reader.getArray((reader) => reader.getUint16());
-var raidtabIcons = reader.getMap((reader) => reader.getUint8(), (reader) => reader.getUint16());
+const raiddefaultItemTabs = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint8())
+const raidcustomSortOrder = reader.getArray((reader) => reader.getUint16());
+const raidglowingItems = reader.getArray((reader) => reader.getUint16());
+const raidtabIcons = reader.getMap((reader) => reader.getUint8(), (reader) => reader.getUint16());
 
 const raidWave = reader.getUint32();
 const raidWaveProgress = reader.getUint32();
@@ -799,7 +546,7 @@ const raidKillCount = reader.getUint32();
 const raidStart = reader.getFloat64();
 const raidOwnedCrateItems = reader.getArray((reader) => reader.getUint16());
 
-var raidRandomModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
+const raidRandomModifiers = reader.getMap((reader) => reader.getUint16(), (reader) => {
     var modifiers = [reader.getFloat64(), reader.getUint32()];
     for (var i = 1; i <= 256; i *= 2)
         if (modifiers[1] & i) {
@@ -807,8 +554,10 @@ var raidRandomModifiers = reader.getMap((reader) => reader.getUint16(), (reader)
         }
     return modifiers;
 });
+
+
 const raidSelectedPositiveModifier = reader.getBoolean();
-var raidItemWeapons = reader.getMap(
+const raidItemWeapons = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
 );
@@ -833,55 +582,47 @@ const raidItemPassives = reader.getMap(
     (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
 );
 const raidItemCategory = reader.getUint8();
+
+
 const raidPosMods = reader.getUint8();
 const raidNegMods = reader.getUint8();
 const raidPaused = reader.getBoolean();
-var raidHistories = reader.getArray((reader) => {
-    var raidSkills = reader.getArray((reader) => reader.getUint32());
-    var raidEquipments = reader.getArray((reader) => reader.getUint16());
-    var ammo = reader.getUint32();
-    var inventories = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32())
-    var food = reader.getUint16();
-    var foodQty = reader.getUint32();
-    var wave = reader.getUint32();
-    var kills = reader.getUint32();
-    var time = reader.getFloat64();
-    var coins = reader.getUint32();
-    var difficuilty = reader.getUint8();
-    var raidHistory = {
-        skills: raidSkills,
-        equipment: raidEquipments,
-        ammo: ammo,
-        inventories: inventories,
-        history: raidHistory,
-        food: food,
-        foodQty: foodQty,
-        wave: wave,
-        kills: kills,
-        time: time,
-        coins: coins,
-        difficulty: difficuilty
+const raidHistories = reader.getArray((reader) => {
+    return {
+        skills: reader.getArray((reader) => reader.getUint32()),
+        equipment: reader.getArray((reader) => reader.getUint16()),
+        ammo: reader.getUint32(),
+        inventories: reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32()),
+        food: reader.getUint16(),
+        foodQty: reader.getUint32(),
+        wave: reader.getUint32(),
+        kills: reader.getUint32(),
+        time: reader.getFloat64(),
+        coins: reader.getUint32(),
+        difficulty: reader.getUint8()
     };
-    return raidHistory;
 })
 
 // Goblin Complete
 
+
+
+
 // Minibar Start
-var MinibarItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getArray((reader) => reader.getUint16()));
+const MinibarItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getArray((reader) => reader.getUint16()));
 // Minibar Complete
 
 // Pets Start
-var petList = reader.getArray((reader) => reader.getUint16());
+const petList = reader.getArray((reader) => reader.getUint16());
 // Pets Complete
 
 // Shop Start
-var shopItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+const shopItems = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 const purchaseQty = reader.getFloat64();
 // Shop Complete
 
 // Item Charges Start
-var itemCharges = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+const itemCharges = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 // Item Charges Complete
 
 const tutorialComplete = reader.getBoolean();
@@ -889,41 +630,37 @@ if (!tutorialComplete){
     throw new Error("Tutorial not complete");
 }
 
+
+
 // Start Potions
-var potionList = reader.getMap((reader) => reader.getUint16(), (reader) => [reader.getUint16(), reader.getUint32()]);
-var potionReuse = reader.getArray((reader) => reader.getUint16());
+const potionList = reader.getMap((reader) => reader.getUint16(), (reader) => [reader.getUint16(), reader.getUint32()]);
+const potionReuse = reader.getArray((reader) => reader.getUint16());
 // End Potions
 
 // Start Stats
-var woodcuttingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var fishingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var firemakingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var cookingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var miningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var smithingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var attackStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var strengthStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var defenceStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var hitpointsStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var theivingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var farmingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var rangedStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var fletchingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var craftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var runecraftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var magicStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var prayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var slayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var herbloreStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var agilityStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var summoningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-
-
-
-
-
-
-var itemsStats = reader.getMap(
+const woodcuttingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const fishingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const firemakingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const cookingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const miningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const smithingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const attackStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const strengthStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const defenceStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const hitpointsStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const theivingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const farmingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const rangedStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const fletchingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const craftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const runecraftingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const magicStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const prayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const slayerStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const herbloreStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const agilityStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const summoningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const itemsStats = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => reader.getMap(
         (reader) => reader.getUint32(),
@@ -931,7 +668,7 @@ var itemsStats = reader.getMap(
     )
 );
 
-var monstersStats = reader.getMap(
+const monstersStats = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => reader.getMap(
         (reader) => reader.getUint32(),
@@ -940,20 +677,18 @@ var monstersStats = reader.getMap(
 );
 
 
-
-
-
-var generalStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var combatStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var goblinStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var astrologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var shopStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var townshipStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var cartographyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var archaeologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var corruptionStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
-var harvestingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const generalStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const combatStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const goblinStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const astrologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const shopStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const townshipStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const cartographyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const archaeologyStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const corruptionStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
+const harvestingStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
 // End Stats
+
 
 // Start Settings
 const settingcontinueIfBankFull = reader.getBoolean();
@@ -1069,11 +804,12 @@ const settingenableSwipeSidebar = reader.getBoolean();
 
 // Settings Complete
 
-var news = reader.getArray((reader) => reader.getString());
+
+const news = reader.getArray((reader) => reader.getString());
 
 const lastLoadedGameVersion = reader.getString();
 
-var scheduledPushNotifications = reader.getArray((reader) => {
+const scheduledPushNotifications = reader.getArray((reader) => {
     return {
         id: reader.getString(),
         startDate: reader.getFloat64(),
@@ -1083,8 +819,9 @@ var scheduledPushNotifications = reader.getArray((reader) => {
     }
 });
 
+
 // Start Skills
-var skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
+const skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
     const skillSize = reader.getUint32();
     const endOffset = skillSize + reader.offset;
     var skill = {
@@ -1574,14 +1311,13 @@ var skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
         skill.excessData = reader.getFixedLengthBuffer(remaining);
     }
     return skill;
-    
 });
 // Skills Complete
 
 
 // Mods Start
 
-var mods = reader.getMap(
+const mods = reader.getMap(
     (reader) => reader.getUint32(),
     (reader) => {
         return {
@@ -1593,9 +1329,10 @@ var mods = reader.getMap(
 
 // Mods Complete
 
+
 const completion = reader.getString();
 
-var keyBindings = reader.getMap(
+const keyBindings = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => reader.getArray(
         (reader) => {
@@ -1612,10 +1349,10 @@ var keyBindings = reader.getMap(
     )
 );
 
-var birthdayCompletions = reader.getArray((reader) => reader.getBoolean());
+const birthdayCompletions = reader.getArray((reader) => reader.getBoolean());
 const clueHuntStep = reader.getInt8();
 
-var currencies = reader.getMap(
+const currencies = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => {
         return {
@@ -1635,10 +1372,13 @@ var currencies = reader.getMap(
     }
 )
 
-var areaCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
-var strongholdCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
 
-var randomIncreases = reader.getMap(
+
+
+const areaCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+const strongholdCompletions = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+
+const levelCapIncreases = reader.getMap(
     (reader) => reader.getUint16(),
     (reader) => {
         return {
@@ -1648,8 +1388,454 @@ var randomIncreases = reader.getMap(
     }
 );
 
-var capIncreases = reader.getArray((reader) => reader.getUint16());
+const levelCapIncreasesSelected = reader.getArray((reader) => reader.getUint16());
 
 const levelCapIncreasesBought = reader.getUint16();
 const abyssalLevelCapIncreasesBought = reader.getUint16();
-const newRealm = reader.getUint16();
+const realm = reader.getUint16();
+
+const data = {
+    header: {
+        saveVersion: headerSaveVersion,
+        saveName: headerSaveName,
+        gameMode: headerGameMode,
+        skillLevel: headerSkillLevel,
+        gp: headerGp,
+        activeTraining: headerActiveTraining,
+        activeTrainingName: headerActiveTrainingName,
+        tickTime: headerTickTime,
+        saveTime: headerSaveTime,
+        activeNamespaces: headerActiveNamespaces,
+        mods: headerMods,
+        namespaces: headerNamespaces
+    },
+    tickTime: tickTime,
+    saveTime: saveTime,
+    activeAction: activeAction,
+    pausedAction: pausedAction,
+    paused: paused,
+    merchantsPermitRead: merchantsPermitRead,
+    gameMode: gameMode,
+    characterName: characterName,
+    bank: {
+        lockedItems: lockedItems,
+        tabs: bankTabs,
+        defaultTabs: defaultItemTabs,
+        sortOrder: customSortOrder,
+        glowing: glowingItems,
+        icons: tabIcons
+    },
+    combat: {
+        player: {
+            character: {
+                hp: hp,
+                nextAction: nextAction,
+                attackCount: attackCount,
+                nextAttack: nextAttack,
+                isAttacking: isAttacking,
+                firstHit: firstHit,
+                actionTimer: {
+                    ticksLeft: actionTicksLeft,
+                    maxTicks: actionMaxTicks,
+                    active: actionActive
+                },
+                regenTimer :{
+                    ticksLeft: regenTicksLeft,
+                    maxTicks: regenMaxTicks,
+                    active: regenActive
+                },
+                turnsTaken: turnsTaken,
+                bufferedRegen: bufferedRegen,
+                activeEffects: activeEffects,
+                firstMiss: firstMiss,
+                barrier: barrier
+            },
+            meleeType: melee,
+            rangedType: ranged,
+            magicType: magic,
+            prayerPoints: prayerPoints,
+            equipmentSet: selectedEquipmentSet,
+            equipmentSets: equipmentSets,
+            foodSlot: selectedFoodSlot,
+            foodSlots: foodSlots,
+            maxFoodSlot: maxFoodSlot,
+            summoningTimer: {
+                ticksLeft: summonTicksLeft,
+                maxTicks: summonMaxTicks,
+                active: summonActive
+            },
+            soulPoints: soulPoints,
+            unholyPrayerMultiplier: unholyPrayerMultiplier
+        },
+        enemy: {
+            character: {
+                hp: enemyHitpoints,
+                nextAction: enemyAction,
+                attackCount: enemyAttackCount,
+                nextAttack: enemyNextAttack,
+                isAttacking: enemyAttacking,
+                firstHit: enemyFirstHit,
+                actionTimer: {
+                    ticksLeft: enemyActionTicksLeft,
+                    maxTicks: enemyActionMaxTicks,
+                    active: enemyActionActive
+                },
+                regenTimer: {
+                    ticksLeft: enemyRegenTicksLeft,
+                    maxTicks: enemyRegenMaxTicks,
+                    active: enemyRegenActive
+                },
+                turnsTaken: enemyTurnsTaken,
+                bufferedRegen: enemyBufferedRegen,
+                activeEffects: enemyActiveEffects,
+                firstMiss: enemyFirstMiss,
+                barrier: enemyBarrier
+            },
+            state: enemyState,
+            attackType: enemyAttackType,
+            enemy: enemy,
+            damageType: damageType
+        },
+        fightInProgress: fightInProgess,
+        fightTimer: {
+            ticksLeft: fightSpawnTicksLeft,
+            maxTicks: fightSpawnMaxTicks,
+            active: fightSpawnActive
+        },
+        combatActive: combatActive,
+        combatPassives: combatPassives,
+        combatArea: combatArea,
+        combatAreaProgress: combatAreaProgress,
+        monster: monster,
+        combatPaused: combatPaused,
+        loot: loot,
+        slayer: {
+            taskActive: slayerActive,
+            task: slayerTask,
+            left: slayerLeft,
+            extended: slayerExtended,
+            category: slayerCategory,
+            categories: slayerCategories,
+            timer: {
+                ticksLeft: slayerTaskTicksLeft,
+                maxTicks: slayerTaskMaxTicks,
+                active: slayerTaskActive
+            },
+            realm: slayerRealm
+        },
+        event: {
+            active: activeEvent,
+            passives: eventPassives,
+            passivesSelected: eventPassivesSelected,
+            dungeonLength: eventDungeonLength,
+            dungeonCompletions: eventDungeonCompletions,
+            activeEventAreas: activeEventAreas,
+            progress: eventProgress,
+            strongholdTier: eventStrongholdTier
+        }
+    },
+    goblinRaid: {
+        player: {
+            character: {
+                hp: raidhp,
+                nextAction: raidnextAction,
+                attackCount: raidattackCount,
+                nextAttack: raidnextAttack,
+                isAttacking: raidisAttacking,
+                firstHit: raidfirstHit,
+                actionTimer: {
+                    ticksLeft: raidactionTicksLeft,
+                    maxTicks: raidactionMaxTicks,
+                    active: raidactionActive
+                },
+                regenTimer :{
+                    ticksLeft: raidregenTicksLeft,
+                    maxTicks: raidregenMaxTicks,
+                    active: raidregenActive
+                },
+                turnsTaken: raidturnsTaken,
+                bufferedRegen: raidbufferedRegen,
+                activeEffects: raidactiveEffects,
+                firstMiss: raidfirstMiss,
+                barrier: raidbarrier
+            },
+            meleeType: raidMeleeStyle,
+            rangedType: raidRangedStyle,
+            magicType: raidMagicStyle,
+            prayerPoints: raidprayerPoints,
+            equipmentSet: raidselectedEquipmentSet,
+            equipmentSets: raidequipmentSets,
+            foodSlot: raidselectedFoodSlot,
+            foodSlots: raidfoodSlots,
+            maxFoodSlot: raidmaxFoodSlot,
+            summoningTimer: {
+                ticksLeft: raidsummonTicksLeft,
+                maxTicks: raidsummonMaxTicks,
+                active: raidsummonActive
+            },
+            soulPoints: raidsoulPoints,
+            unholyPrayerMultiplier: raidunholyPrayerMultiplier,
+            altAttacks: raidAltAttacks
+        },
+        enemy: {
+            character: {
+                hp: raidenemyHitpoints,
+                nextAction: raidenemyAction,
+                attackCount: raidenemyAttackCount,
+                nextAttack: raidenemyNextAttack,
+                isAttacking: raidenemyAttacking,
+                firstHit: raidenemyFirstHit,
+                actionTimer: {
+                    ticksLeft: raidenemyActionTicksLeft,
+                    maxTicks: raidenemyActionMaxTicks,
+                    active: raidenemyActionActive
+                },
+                regenTimer: {
+                    ticksLeft: raidenemyRegenTicksLeft,
+                    maxTicks: raidenemyRegenMaxTicks,
+                    active: raidenemyRegenActive
+                },
+                turnsTaken: raidenemyTurnsTaken,
+                bufferedRegen: raidenemyBufferedRegen,
+                activeEffects: raidenemyActiveEffects,
+                firstMiss: raidenemyFirstMiss,
+                barrier: raidenemyBarrier
+            },
+            state: raidenemyState,
+            attackType: raidenemyAttackType,
+            enemy: raidenemy,
+            goblin: goblin
+        },
+        inProgress: raidfightInProgess,
+        spawnTimer: {
+            ticksLeft: raidfightSpawnTicksLeft,
+            maxTicks: raidfightSpawnMaxTicks,
+            active: raidfightSpawnActive
+        },
+        active: raidcombatActive,
+        passives: raidcombatPassives,
+        playerModifiers: raidPlayerModifiers,
+        enemyModifiers: raidEnemyModifiers,
+        state: raidState,
+        difficulty: raidDifficulty,
+        bank: {
+            lockedItems: raidlockedItems,
+            bankTabs: raidbankTabs,
+            defaultItemTabs: raiddefaultItemTabs,
+            customSortOrder: raidcustomSortOrder,
+            glowingItems: raidglowingItems,
+            tabIcons: raidtabIcons
+        },
+        wave: raidWave,
+        waveProgress: raidWaveProgress,
+        killCount: raidKillCount,
+        start: raidStart,
+        ownedCrateItems: raidOwnedCrateItems,
+        randomModifiers: raidRandomModifiers,
+        positiveModifier: raidSelectedPositiveModifier,
+        items: {
+            weapons: raidItemWeapons,
+            armour: raidItemArmour,
+            ammo: raidItemAmmo,
+            runes: raidItemRunes,
+            food: raidItemFoods,
+            passives: raidItemPassives
+        },
+        itemCategory: raidItemCategory,
+        positiveModifiers: raidPosMods,
+        negativeModifiers: raidNegMods,
+        paused: raidPaused,
+        history: raidHistories
+    },
+    minibar: MinibarItems,
+    pets: petList,
+    shop: {
+        items: shopItems,
+        purchases: purchaseQty
+    },
+    itemCharges: itemCharges,
+    tutorialComplete: tutorialComplete,
+    potions: {
+        list: potionList,
+        reuse: potionReuse
+    },
+    stats: {
+        woodcutting: woodcuttingStats,
+        fishing: fishingStats,
+        firemaking: firemakingStats,
+        cooking: cookingStats,
+        mining: miningStats,
+        smithing: smithingStats,
+        attack: attackStats,
+        strength: strengthStats,
+        defence: defenceStats,
+        hitpoints: hitpointsStats,
+        theiving: theivingStats,
+        farming: farmingStats,
+        ranged: rangedStats,
+        fletching: fletchingStats,
+        crafting: craftingStats,
+        runecrafting: runecraftingStats,
+        magic: magicStats,
+        prayer: prayerStats,
+        slayer: slayerStats,
+        herblore: herbloreStats,
+        agility: agilityStats,
+        summoning: summoningStats,
+        items: itemsStats,
+        monsters: monstersStats,
+        general: generalStats,
+        combat: combatStats,
+        goblinRaid: goblinStats,
+        astrology: astrologyStats,
+        shop: shopStats,
+        township: townshipStats,
+        cartography: cartographyStats,
+        archaeology: archaeologyStats,
+        corruption: corruptionStats,
+        harvesting: harvestingStats
+    },
+    settings: {
+        continueIfBankFull: settingcontinueIfBankFull,
+        continueThievingOnStun: settingcontinueThievingOnStun,
+        autoRestartDungeon: settingautoRestartDungeon,
+        autoCloudSave: settingautoCloudSave,
+        darkMode: settingdarkMode,
+        showGPNotifications: settingshowGPNotifications,
+        enableAccessibility: settingenableAccessibility,
+        showEnemySkillLevels: settingshowEnemySkillLevels,
+        showCloseConfirmations: settingshowCloseConfirmations,
+        hideThousandsSeperator: settinghideThousandsSeperator,
+        showVirtualLevels: settingshowVirtualLevels,
+        showSaleConfirmations: settingshowSaleConfirmations,
+        showShopConfirmations: settingshowShopConfirmations,
+        pauseOnUnfocus: settingpauseOnUnfocus,
+        showCombatMinibar: settingshowCombatMinibar,
+        showCombatMinibarCombat: settingshowCombatMinibarCombat,
+        showSkillingMinibar: settingshowSkillingMinibar,
+        useCombinationRunes: settinguseCombinationRunes,
+        enableAutoSlayer: settingenableAutoSlayer,
+        showItemNotifications: settingshowItemNotifications,
+        useSmallLevelUpNotifications: settinguseSmallLevelUpNotifications,
+        useDefaultBankBorders: settinguseDefaultBankBorders,
+        defaultToCurrentEquipSet: settingdefaultToCurrentEquipSet,
+        hideMaxLevelMasteries: settinghideMaxLevelMasteries,
+        showMasteryCheckpointconfirmations: settingshowMasteryCheckpointconfirmations,
+        enableOfflinePushNotifications: settingenableOfflinePushNotifications,
+        enableFarmingPushNotifications: settingenableFarmingPushNotifications,
+        enableOfflineCombat: settingenableOfflineCombat,
+        enableMiniSidebar: settingenableMiniSidebar,
+        enableAutoEquipFood: settingenableAutoEquipFood,
+        enableAutoSwapFood: settingenableAutoSwapFood,
+        enablePerfectCooking: settingenablePerfectCooking,
+        showCropDestructionConfirmations: settingshowCropDestructionConfirmations,
+        showAstrologyMaxRollConfirmations: settingshowAstrologyMaxRollConfirmations,
+        showQuantityInItemNotifications: settingshowQuantityInItemNotifications,
+        showItemPreservationNotifications: settingshowItemPreservationNotifications,
+        showSlayerCoinNotifications: settingshowSlayerCoinNotifications,
+        showEquipmentSetsInCombatMinibar: settingshowEquipmentSetsInCombatMinibar,
+        showBarsInCombatMinibar: settingshowBarsInCombatMinibar,
+        showCombatStunNotifications: settingshowCombatStunNotifications,
+        showCombatSleepNotifications: settingshowCombatSleepNotifications,
+        showSummoningMarkDiscoveryModals: settingshowSummoningMarkDiscoveryModals,
+        enableCombatDamageSplashes: settingenableCombatDamageSplashes,
+        enableProgressBars: settingenableProgressBars,
+        showTierIPotions: settingshowTierIPotions,
+        showTierIIPotions: settingshowTierIIPotions,
+        showTierIIIPotions: settingshowTierIIIPotions,
+        showTierIVPotions: settingshowTierIVPotions,
+        showNeutralAttackModifiers: settingshowNeutralAttackModifiers,
+        defaultPageOnLoad: settingdefaultPageOnLoad,
+        formatNumberSetting: settingformatNumberSetting,
+        bankSortOrder: settingbankSortOrder,
+        colourBlindMode: settingcolourBlindMode,
+        enableEyebleachMode: settingenableEyebleachMode,
+        enableQuickConvert: settingenableQuickConvert,
+        showLockedTownshipBuildings: settingshowLockedTownshipBuildings,
+        useNewNotifications: settinguseNewNotifications,
+        notificationHorizontalPosition: settingnotificationHorizontalPosition,
+        notificationDisappearDelay: settingnotificationDisappearDelay,
+        showItemNamesInNotifications: settingshowItemNamesInNotifications,
+        importanceSummoningMarkFound: settingimportanceSummoningMarkFound,
+        importanceErrorMessages: settingimportanceErrorMessages,
+        enableScrollableBankTabs: settingenableScrollableBankTabs,
+        showWikiLinks: settingshowWikiLinks,
+        disableHexGridOutsideSight: settingdisableHexGridOutsideSight,
+        mapTextureQuality: settingmapTextureQuality,
+        enableMapAntialiasing: settingenableMapAntialiasing,
+        showSkillXPNotifications: settingshowSkillXPNotifications,
+        backgroundImage: settingbackgroundImage,
+        superDarkMode: settingsuperDarkMode,
+        showExpansionBackgroundColours: settingshowExpansionBackgroundColours,
+        showCombatAreaWarnings: settingshowCombatAreaWarnings,
+        useCompactNotifications: settinguseCompactNotifications,
+        useLegacyNotifications: settinguseLegacyNotifications,
+        useCat: settinguseCat,
+        throttleFrameRateOnInactivity: settingthrottleFrameRateOnInactivity,
+        cartographyFrameRateCap: settingcartographyFrameRateCap,
+        toggleBirthdayEvent: settingtoggleBirthdayEvent,
+        toggleDiscordRPC: settingtoggleDiscordRPC,
+        genericArtefactAllButOne: settinggenericArtefactAllButOne,
+        hiddenMasteryNamespaces: settinghiddenMasteryNamespaces,
+        enableDoubleClickEquip: settingenableDoubleClickEquip,
+        enableDoubleClickOpen: settingenableDoubleClickOpen,
+        enableDoubleClickBury: settingenableDoubleClickBury,
+        showAbyssalPiecesNotifications: settingshowAbyssalPiecesNotifications,
+        showAbyssalSlayerCoinNotifications: settingshowAbyssalSlayerCoinNotifications,
+        enablePermaCorruption: settingenablePermaCorruption,
+        showAPNextToShopSidebar: settingshowAPNextToShopSidebar,
+        showASCNextToSlayerSidebar: settingshowASCNextToSlayerSidebar,
+        sidebarLevels: settingsidebarLevels,
+        showAbyssalXPNotifications: settingshowAbyssalXPNotifications,
+        showSPNextToPrayerSidebar: settingshowSPNextToPrayerSidebar,
+        enableStickyBankTabs: settingenableStickyBankTabs,
+        useLegacyRealmSelection: settinguseLegacyRealmSelection,
+        showOpacityForSkillNavs: settingshowOpacityForSkillNavs,
+        bankFilterShowAll: settingbankFilterShowAll,
+        bankFilterShowDemo: settingbankFilterShowDemo,
+        bankFilterShowFull: settingbankFilterShowFull,
+        bankFilterShowTotH: settingbankFilterShowTotH,
+        bankFilterShowAoD: settingbankFilterShowAoD,
+        bankFilterShowItA: settingbankFilterShowItA,
+        bankFilterShowDamageReduction: settingbankFilterShowDamageReduction,
+        bankFilterShowAbyssalResistance: settingbankFilterShowAbyssalResistance,
+        bankFilterShowNormalDamage: settingbankFilterShowNormalDamage,
+        bankFilterShowAbyssalDamage: settingbankFilterShowAbyssalDamage,
+        bankFilterShowSkillXP: settingbankFilterShowSkillXP,
+        bankFilterShowAbyssalXP: settingbankFilterShowAbyssalXP,
+        alwaysShowRealmSelectAgility: settingalwaysShowRealmSelectAgility,
+        enableSwipeSidebar: settingenableSwipeSidebar,
+        keyBindings: keyBindings
+    },
+    news: news,
+    lastLoadedGameVersion: lastLoadedGameVersion,
+    scheduledPushNotifications: scheduledPushNotifications,
+    skills: skills,
+    mods: mods,
+    completion: {
+        completion: completion,
+        birthdayCompletions: birthdayCompletions,
+        clueHuntStep: clueHuntStep,
+        areaCompletions: areaCompletions,
+        strongholdCompletions: strongholdCompletions
+    },
+    currencies: currencies,
+    levelCapIncreases: {
+        increases: levelCapIncreases,
+        selected: levelCapIncreasesSelected,
+        bought: levelCapIncreasesBought,
+        abyssalBought: abyssalLevelCapIncreasesBought,
+    },
+    realm: realm
+};
+console.log(headerNamespaces);
+writeFileSync('./test.txt', JSON.stringify(data, (key, value) => {
+    if(value instanceof Map) {
+      return Array.from(value.entries()).reduce((obj, [key, value]) => {
+            obj[key] = value;
+            return obj;
+          }, {});
+    } else {
+      return value;
+    }
+}));
