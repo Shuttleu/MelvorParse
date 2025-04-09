@@ -1,15 +1,24 @@
 import { unzlibSync, strToU8 } from 'fflate';
+import { saveData } from "./type"
 
 class Reader {
     saveString: string;
     parsedString: ArrayBuffer;
     dataView: DataView;
-    offset = 6;
+    offset = 0;
 
     constructor (saveString: string) {
         this.saveString = saveString;
         this.parsedString = unzlibSync(strToU8(atob(this.saveString), true)).buffer;
         this.dataView = new DataView(this.parsedString);
+    }
+
+    getStaticString(length: number) {
+            const decoder = new TextDecoder()
+            const encodedString = this.parsedString.slice(this.offset, this.offset + length);
+            const string = decoder.decode(encodedString);
+            this.offset += length;
+        return string;
     }
 
     getString() {
@@ -69,7 +78,7 @@ class Reader {
         return buffer;
     }
 
-    getArray(value: (reader: Reader) => {} | undefined) {
+    getArray(value: (reader: Reader) => any) {
         var result = [];
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
@@ -78,7 +87,7 @@ class Reader {
         return result;
     }
 
-    getSet(value: (reader: Reader) => {}) {
+    getSet(value: (reader: Reader) => any) {
         var result = new Set();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
@@ -87,7 +96,7 @@ class Reader {
         return result;
     }
 
-    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number | string) => {}) {
+    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number | string) => any) {
         var result = new Map();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
@@ -99,9 +108,13 @@ class Reader {
     }
 }
 
-export function parseString(string: string): any {
+export function parseString(string: string): saveData {
     try {
         var reader = new Reader(string);
+
+        const staticString = reader.getStaticString(6);
+
+        if (staticString != "melvor") throw new Error("Not a Melvor Idle save string");
         
         const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
         
@@ -138,12 +151,12 @@ export function parseString(string: string): any {
         const headerActiveTrainingName = reader.getString();
         const headerTickTime = reader.getFloat64();
         const headerSaveTime = reader.getFloat64();
-        const headerActiveNamespaces = reader.getArray((reader) => reader.getString());
+        const headerActiveNamespaces = reader.getSet((reader) => reader.getString());
         
         const headerMods = reader.getBoolean() ? {
             profileId: reader.getString(),
             profileName: reader.getString(),
-            mods: reader.getArray((reader) => reader.getUint32())
+            mods: reader.getSet((reader) => reader.getUint32())
         } : undefined
         reader.getUint32();
         const tickTime = reader.getFloat64();
@@ -228,8 +241,8 @@ export function parseString(string: string): any {
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = 0;
-                    var qty = 0;
+                    var stackable = undefined;
+                    var qty = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
@@ -1846,7 +1859,10 @@ export function parseString(string: string): any {
             },
             realm: realm
         };
-    } catch {
-        return "Invalid save string";
+    } catch (e: any) {
+        if (!(e instanceof Error)) {
+            e = new Error(e);
+        }
+        return e.message;
     }
 }
