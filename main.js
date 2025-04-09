@@ -891,7 +891,7 @@ const skills = reader.getMap((reader) => reader.getUint16(), (reader, k) => {
                                             var modifiers = [reader.getFloat64(), reader.getUint32()];
                                             for (var i = 1; i <= 256; i *= 2)
                                                 if (modifiers[1] & i) {
-                                                    modifiers.push(getUint16());
+                                                    modifiers.push(reader.getUint16());
                                                 }
                                             return modifiers;
                                         })
