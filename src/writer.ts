@@ -46,50 +46,43 @@ export class Writer {
         this.checkDataViewSize(Int8Array.BYTES_PER_ELEMENT);
         this.dataView.setInt8(this.offset, value);
         this.offset += Int8Array.BYTES_PER_ELEMENT;
-        return value;
     }
     setUint8(value: number) {
         this.checkDataViewSize(Uint8Array.BYTES_PER_ELEMENT);
         this.dataView.setUint8(this.offset, value);
         this.offset += Uint8Array.BYTES_PER_ELEMENT;
-        return value;
     }
 
     setInt16(value: number) {
         this.checkDataViewSize(Int16Array.BYTES_PER_ELEMENT);
         this.dataView.setInt16(this.offset, value);
         this.offset += Int16Array.BYTES_PER_ELEMENT;
-        return value;
     }
     setUint16(value: number) {
         this.checkDataViewSize(Uint16Array.BYTES_PER_ELEMENT);
         this.dataView.setUint16(this.offset, value);
         this.offset += Uint16Array.BYTES_PER_ELEMENT;
-        return value;
     }
     setInt32(value: number) {
         this.checkDataViewSize(Int32Array.BYTES_PER_ELEMENT);
         this.dataView.setInt32(this.offset, value);
         this.offset += Int32Array.BYTES_PER_ELEMENT;
-        return value;
     }
 
     setUint32(value: number) {
         this.checkDataViewSize(Uint32Array.BYTES_PER_ELEMENT);
         this.dataView.setUint32(this.offset, value);
         this.offset += Uint32Array.BYTES_PER_ELEMENT;
-        return value;
     }
 
     setBoolean(value: boolean) {
-        return this.setUint8(value ? 1 : 0);
+        this.setUint8(value ? 1 : 0);
     }
 
     setFloat64(value: number) {
         this.checkDataViewSize(Float64Array.BYTES_PER_ELEMENT);
         this.dataView.setFloat64(this.offset, value);
         this.offset += Float64Array.BYTES_PER_ELEMENT;
-        return value;
     }
     setFixedLengthBuffer(value: Uint8Array) {
         const arraySize = value.length;
@@ -121,16 +114,14 @@ export class Writer {
             setKey(this, key);
             setValue(this, value);
         })
-        for (var i = 0; i < mapSize; i++) {
-        }
     }
 }
 
 export function parseSave(save: saveData, initialSize: number): string {
     var writer = new Writer(initialSize);
     writer.setStaticString("melvor");
-    writer.setUint32(0);
     const headerSizeLocation = writer.offset;
+    writer.setUint32(0);
     writer.setMap(save.header.namespaces,
         (writer, key) => writer.setString(key), 
         (writer, value) => writer.setMap(value,
@@ -154,7 +145,305 @@ export function parseSave(save: saveData, initialSize: number): string {
         writer.setString(save.header.mods.profileName),
         writer.setSet(save.header.mods.mods, (writer, value) => writer.setUint32(value))
     }
-    writer.dataView.setUint32(headerSizeLocation - 4, writer.offset - headerSizeLocation);
-    console.log(writer.offset - headerSizeLocation);
+    writer.dataView.setUint32(headerSizeLocation, writer.offset - headerSizeLocation - 4);
+    const bodySizeLocation = writer.offset;
+    writer.setUint32(0);
+    writer.setFloat64(save.tickTime);
+    writer.setFloat64(save.saveTime);
+    writer.setBoolean(save.activeAction != undefined);
+    if (save.activeAction != undefined)
+        writer.setUint16(save.activeAction);
+    writer.setBoolean(save.pausedAction != undefined);
+    if (save.pausedAction)
+        writer.setUint16(save.pausedAction);
+    writer.setBoolean(save.paused);
+    writer.setBoolean(save.merchantsPermitRead);
+    writer.setUint16(save.gameMode);
+    writer.setString(save.characterName);
+    writer.setArray(save.bank.lockedItems, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.bank.tabs,
+        (writer, value) => writer.setMap(value,
+            (writer, key) => writer.setUint16(key),
+            (writer, value) => writer.setUint32(value)
+        )
+    );
+    writer.setMap(save.bank.defaultTabs,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint8(value)
+    );
+    writer.setArray(save.bank.sortOrder, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.bank.glowing, (writer, value) => writer.setUint16(value));
+    writer.setMap(save.bank.icons,
+        (writer, key) => writer.setUint8(key),
+        (writer, value) => writer.setUint16(value)
+    );
+    writer.setUint32(save.combat.player.character.hp);
+    writer.setUint8(save.combat.player.character.nextAction);
+    writer.setUint32(save.combat.player.character.attackCount);
+    writer.setUint16(save.combat.player.character.nextAttack);
+    writer.setBoolean(save.combat.player.character.isAttacking);
+    writer.setBoolean(save.combat.player.character.firstHit);
+    writer.setUint32(save.combat.player.character.actionTimer.ticksLeft);
+    writer.setUint32(save.combat.player.character.actionTimer.maxTicks);
+    writer.setBoolean(save.combat.player.character.actionTimer.active);
+    writer.setUint32(save.combat.player.character.regenTimer.ticksLeft);
+    writer.setUint32(save.combat.player.character.regenTimer.maxTicks);
+    writer.setBoolean(save.combat.player.character.regenTimer.active);
+    writer.setUint32(save.combat.player.character.turnsTaken);
+    writer.setUint32(save.combat.player.character.bufferedRegen);
+    writer.setMap(save.combat.player.character.activeEffects,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+                writer.setBoolean(value.player),
+                writer.setUint8(value.type),
+                writer.setFloat64(value.damageDealt),
+                writer.setFloat64(value.damasetaken),
+                writer.setArray(value.parameters, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.statGroups, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.timers, (writer, value) => {
+                    writer.setString(value[0]),
+                    writer.setUint32(value[1]),
+                    writer.setUint32(value[2]),
+                    writer.setBoolean(value[3])
+            })
+        }
+    );
+    writer.setBoolean(save.combat.player.character.firstMiss);
+    writer.setUint32(save.combat.player.character.barrier);
+    writer.setBoolean(save.combat.player.meleeType != undefined);
+    if (save.combat.player.meleeType != undefined)
+        writer.setUint16(save.combat.player.meleeType);
+    writer.setBoolean(save.combat.player.rangedType != undefined);
+    if (save.combat.player.rangedType != undefined)
+        writer.setUint16(save.combat.player.rangedType);
+    writer.setBoolean(save.combat.player.magicType != undefined);
+    if (save.combat.player.magicType != undefined)
+        writer.setUint16(save.combat.player.magicType);
+    writer.setUint32(save.combat.player.prayerPoints);
+    writer.setUint16(save.combat.player.equipmentSet);
+    writer.setArray(save.combat.player.equipmentSets,
+        (writer, value) => {
+            writer.setArray(value.equipment, (writer, value) => {
+                writer.setUint16(value.id);
+                writer.setBoolean(value.stackable != undefined)
+                if (value.stackable != undefined) {
+                    writer.setUint16(value.stackable);
+                    writer.setUint32(value.qty);
+                }
+                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(value));
+            }),
+            writer.setBoolean(value.spells.spell != undefined);
+            if (value.spells.spell != undefined)
+                writer.setUint16(value.spells.spell);
+            writer.setBoolean(value.spells.aura != undefined);
+            if (value.spells.aura != undefined)
+                writer.setUint16(value.spells.aura);
+            writer.setBoolean(value.spells.curse != undefined);
+            if (value.spells.curse != undefined)
+                writer.setUint16(value.spells.curse);
+            writer.setArray(value.prayers, (writer, value) => writer.setUint16(value))
+    });
+    writer.setUint32(save.combat.player.foodSlot);
+    writer.setUint32(save.combat.player.maxFoodSlot);
+    writer.setArray(save.combat.player.foodSlots, (writer, value) => { writer.setUint16(value[0]), writer.setUint32(value[1])});
+    writer.setUint32(save.combat.player.summoningTimer.ticksLeft);
+    writer.setUint32(save.combat.player.summoningTimer.maxTicks);
+    writer.setBoolean(save.combat.player.summoningTimer.active);
+    writer.setUint32(save.combat.player.soulPoints);
+    writer.setUint8(save.combat.player.unholyPrayerMultiplier);
+    writer.setUint32(save.combat.enemy.character.hp);
+    writer.setUint8(save.combat.enemy.character.nextAction);
+    writer.setUint32(save.combat.enemy.character.attackCount);
+    writer.setUint16(save.combat.enemy.character.nextAttack);
+    writer.setBoolean(save.combat.enemy.character.isAttacking);
+    writer.setBoolean(save.combat.enemy.character.firstHit);
+    writer.setUint32(save.combat.enemy.character.actionTimer.ticksLeft);
+    writer.setUint32(save.combat.enemy.character.actionTimer.maxTicks);
+    writer.setBoolean(save.combat.enemy.character.actionTimer.active);
+    writer.setUint32(save.combat.enemy.character.regenTimer.ticksLeft);
+    writer.setUint32(save.combat.enemy.character.regenTimer.maxTicks);
+    writer.setBoolean(save.combat.enemy.character.regenTimer.active)
+    writer.setUint32(save.combat.enemy.character.turnsTaken);
+    writer.setUint32(save.combat.enemy.character.bufferedRegen);
+    writer.setMap(save.combat.enemy.character.activeEffects,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+                writer.setBoolean(value.player),
+                writer.setUint8(value.type),
+                writer.setFloat64(value.damageDealt),
+                writer.setFloat64(value.damasetaken),
+                writer.setArray(value.parameters, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.statGroups, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.timers, (writer, value) => {
+                    writer.setString(value[0]),
+                    writer.setUint32(value[1]),
+                    writer.setUint32(value[2]),
+                    writer.setBoolean(value[3])
+            })
+        }
+    );
+    writer.setBoolean(save.combat.enemy.character.firstMiss);
+    writer.setUint32(save.combat.enemy.character.barrier);
+    writer.setUint8(save.combat.enemy.state);
+    writer.setUint8(save.combat.enemy.attackType);
+    writer.setBoolean(save.combat.enemy.enemy != undefined);
+    if (save.combat.enemy.enemy != undefined)
+        writer.setUint16(save.combat.enemy.enemy);
+    writer.setBoolean(save.combat.enemy.damageType != undefined);
+    if (save.combat.enemy.damageType != undefined)
+        writer.setUint16(save.combat.enemy.damageType);
+    writer.setBoolean(save.combat.fightInProgress);
+    writer.setUint32(save.combat.fightTimer.ticksLeft);
+    writer.setUint32(save.combat.fightTimer.maxTicks);
+    writer.setBoolean(save.combat.fightTimer.active);
+    writer.setBoolean(save.combat.combatActive);
+    writer.setMap(save.combat.combatPassives, (writer, key) => writer.setUint16(key), (writer, value) => writer.setBoolean(value));
+    writer.setBoolean(save.combat.combatArea != undefined);
+    if (save.combat.combatArea != undefined)
+    {
+        writer.setUint8(save.combat.combatArea.area),
+        writer.setUint16(save.combat.combatArea.subArea)
+    }
+    writer.setUint32(save.combat.combatAreaProgress);
+    writer.setBoolean(save.combat.monster != undefined);
+    if (save.combat.monster != undefined)
+        writer.setUint16(save.combat.monster);
+    writer.setBoolean(save.combat.combatPaused);
+    writer.setMap(save.combat.loot, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setBoolean(save.combat.slayer.taskActive);
+    writer.setBoolean(save.combat.slayer.task != undefined);
+    if (save.combat.slayer.task != undefined)
+        writer.setUint16(save.combat.slayer.task);
+    writer.setUint32(save.combat.slayer.left);
+    writer.setBoolean(save.combat.slayer.extended);
+    writer.setBoolean(save.combat.slayer.category != undefined);
+    if (save.combat.slayer.category != undefined)
+        writer.setUint16(save.combat.slayer.category);
+    writer.setMap(save.combat.slayer.categories, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setUint32(save.combat.slayer.timer.ticksLeft);
+    writer.setUint32(save.combat.slayer.timer.maxTicks);
+    writer.setBoolean(save.combat.slayer.timer.active);
+    writer.setUint16(save.combat.slayer.realm);
+    writer.setBoolean(save.combat.event.active != undefined);
+    if (save.combat.event.active != undefined)
+        writer.setUint16(save.combat.event.active);
+    writer.setArray(save.combat.event.passives, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.combat.event.passivesSelected, (writer, value) => writer.setUint16(value));
+    writer.setUint32(save.combat.event.dungeonLength);
+    writer.setMap(save.combat.event.activeEventAreas, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setUint32(save.combat.event.progress);
+    writer.setMap(save.combat.event.dungeonCompletions, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setUint8(save.combat.event.strongholdTier);
+    writer.setUint32(save.goblinRaid.player.character.hp);
+    writer.setUint8(save.goblinRaid.player.character.nextAction);
+    writer.setUint32(save.goblinRaid.player.character.attackCount);
+    writer.setUint16(save.goblinRaid.player.character.nextAttack);
+    writer.setBoolean(save.goblinRaid.player.character.isAttacking);
+    writer.setBoolean(save.goblinRaid.player.character.firstHit);
+    writer.setUint32(save.goblinRaid.player.character.actionTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.player.character.actionTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.player.character.actionTimer.active);
+    writer.setUint32(save.goblinRaid.player.character.regenTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.player.character.regenTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.player.character.regenTimer.active);
+    writer.setUint32(save.goblinRaid.player.character.turnsTaken);
+    writer.setUint32(save.goblinRaid.player.character.bufferedRegen);
+    writer.setMap(save.goblinRaid.player.character.activeEffects,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+                writer.setBoolean(value.player),
+                writer.setUint8(value.type),
+                writer.setFloat64(value.damageDealt),
+                writer.setFloat64(value.damasetaken),
+                writer.setArray(value.parameters, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.statGroups, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.timers, (writer, value) => {
+                    writer.setString(value[0]),
+                    writer.setUint32(value[1]),
+                    writer.setUint32(value[2]),
+                    writer.setBoolean(value[3])
+            })
+        }
+    );
+    writer.setBoolean(save.goblinRaid.player.character.firstMiss);
+    writer.setUint32(save.goblinRaid.player.character.barrier);
+    writer.setBoolean(save.goblinRaid.player.meleeType != undefined);
+    if (save.goblinRaid.player.meleeType != undefined)
+        writer.setUint16(save.goblinRaid.player.meleeType);
+    writer.setBoolean(save.goblinRaid.player.rangedType != undefined);
+    if (save.goblinRaid.player.rangedType != undefined)
+        writer.setUint16(save.goblinRaid.player.rangedType);
+    writer.setBoolean(save.goblinRaid.player.magicType != undefined);
+    if (save.goblinRaid.player.magicType != undefined)
+        writer.setUint16(save.goblinRaid.player.magicType);
+    writer.setUint32(save.goblinRaid.player.prayerPoints);
+    writer.setUint16(save.goblinRaid.player.equipmentSet);
+    writer.setArray(save.goblinRaid.player.equipmentSets,
+        (writer, value) => {
+            writer.setArray(value.equipment, (writer, value) => {
+                writer.setUint16(value.id);
+                writer.setBoolean(value.stackable != undefined)
+                if (value.stackable != undefined) {
+                    writer.setUint16(value.stackable);
+                    writer.setUint32(value.qty);
+                }
+                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(value));
+            }),
+            writer.setBoolean(value.spells.spell != undefined);
+            if (value.spells.spell != undefined)
+                writer.setUint16(value.spells.spell);
+            writer.setBoolean(value.spells.aura != undefined);
+            if (value.spells.aura != undefined)
+                writer.setUint16(value.spells.aura);
+            writer.setBoolean(value.spells.curse != undefined);
+            if (value.spells.curse != undefined)
+                writer.setUint16(value.spells.curse);
+            writer.setArray(value.prayers, (writer, value) => writer.setUint16(value))
+    });
+    writer.setUint32(save.goblinRaid.player.foodSlot);
+    writer.setUint32(save.goblinRaid.player.maxFoodSlot);
+    writer.setArray(save.goblinRaid.player.foodSlots, (writer, value) => { writer.setUint16(value[0]), writer.setUint32(value[1])});
+    writer.setUint32(save.goblinRaid.player.summoningTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.player.summoningTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.player.summoningTimer.active);
+    writer.setUint32(save.goblinRaid.player.soulPoints);
+    writer.setUint8(save.goblinRaid.player.unholyPrayerMultiplier);
+    writer.setMap(save.goblinRaid.player.altAttacks,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setArray(value, (writer, value) => writer.setUint16(value))
+    );
+    writer.setUint32(save.goblinRaid.enemy.character.hp);
+    writer.setUint8(save.goblinRaid.enemy.character.nextAction);
+    writer.setUint32(save.goblinRaid.enemy.character.attackCount);
+    writer.setUint16(save.goblinRaid.enemy.character.nextAttack);
+    writer.setBoolean(save.goblinRaid.enemy.character.isAttacking);
+    writer.setBoolean(save.goblinRaid.enemy.character.firstHit);
+    writer.setUint32(save.goblinRaid.enemy.character.actionTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.enemy.character.actionTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.enemy.character.actionTimer.active);
+    writer.setUint32(save.goblinRaid.enemy.character.regenTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.enemy.character.regenTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.enemy.character.regenTimer.active)
+    writer.setUint32(save.goblinRaid.enemy.character.turnsTaken);
+    writer.setUint32(save.goblinRaid.enemy.character.bufferedRegen);
+    writer.setMap(save.goblinRaid.enemy.character.activeEffects,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+                writer.setBoolean(value.player),
+                writer.setUint8(value.type),
+                writer.setFloat64(value.damageDealt),
+                writer.setFloat64(value.damasetaken),
+                writer.setArray(value.parameters, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.statGroups, (writer, value) => {writer.setString(value[0]), writer.setUint32(value[1])}),
+                writer.setArray(value.timers, (writer, value) => {
+                    writer.setString(value[0]),
+                    writer.setUint32(value[1]),
+                    writer.setUint32(value[2]),
+                    writer.setBoolean(value[3])
+            })
+        }
+    );
+    writer.setBoolean(save.goblinRaid.enemy.character.firstMiss);
+    writer.setUint32(save.goblinRaid.enemy.character.barrier);
     return writer.generateSaveString();
 }

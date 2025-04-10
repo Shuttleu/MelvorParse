@@ -266,7 +266,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         });
         const selectedFoodSlot = reader.getUint32();
         const maxFoodSlot = reader.getUint32();
-        const foodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+        const foodSlots = reader.getArray((reader) => [reader.getUint16(), reader.getUint32()]);
         const summonTicksLeft = reader.getUint32();
         const summonMaxTicks = reader.getUint32();
         const summonActive = reader.getBoolean();
@@ -411,8 +411,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = 0;
-                    var qty = 0;
+                    var stackable = undefined;
+                    var qty = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
@@ -435,7 +435,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         });
         const raidselectedFoodSlot = reader.getUint32();
         const raidmaxFoodSlot = reader.getUint32();
-        const raidfoodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+        const raidfoodSlots = reader.getArray((reader) => [reader.getUint16(), reader.getUint32()]);
         
         const raidsummonTicksLeft = reader.getUint32();
         const raidsummonMaxTicks = reader.getUint32();
