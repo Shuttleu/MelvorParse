@@ -297,7 +297,10 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.combat.fightTimer.maxTicks);
     writer.setBoolean(save.combat.fightTimer.active);
     writer.setBoolean(save.combat.combatActive);
-    writer.setMap(save.combat.combatPassives, (writer, key) => writer.setUint16(key), (writer, value) => writer.setBoolean(value));
+    writer.setMap(save.combat.combatPassives,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setBoolean(value)
+    );
     writer.setBoolean(save.combat.combatArea != undefined);
     if (save.combat.combatArea != undefined)
     {
@@ -309,7 +312,10 @@ export function parseSave(save: saveData, initialSize: number): string {
     if (save.combat.monster != undefined)
         writer.setUint16(save.combat.monster);
     writer.setBoolean(save.combat.combatPaused);
-    writer.setMap(save.combat.loot, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setMap(save.combat.loot,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
     writer.setBoolean(save.combat.slayer.taskActive);
     writer.setBoolean(save.combat.slayer.task != undefined);
     if (save.combat.slayer.task != undefined)
@@ -319,7 +325,10 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setBoolean(save.combat.slayer.category != undefined);
     if (save.combat.slayer.category != undefined)
         writer.setUint16(save.combat.slayer.category);
-    writer.setMap(save.combat.slayer.categories, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setMap(save.combat.slayer.categories,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
     writer.setUint32(save.combat.slayer.timer.ticksLeft);
     writer.setUint32(save.combat.slayer.timer.maxTicks);
     writer.setBoolean(save.combat.slayer.timer.active);
@@ -330,9 +339,15 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setArray(save.combat.event.passives, (writer, value) => writer.setUint16(value));
     writer.setArray(save.combat.event.passivesSelected, (writer, value) => writer.setUint16(value));
     writer.setUint32(save.combat.event.dungeonLength);
-    writer.setMap(save.combat.event.activeEventAreas, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setMap(save.combat.event.activeEventAreas,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
     writer.setUint32(save.combat.event.progress);
-    writer.setMap(save.combat.event.dungeonCompletions, (writer, key) => writer.setUint16(key), (writer, value) => writer.setUint32(value));
+    writer.setMap(save.combat.event.dungeonCompletions,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
     writer.setUint8(save.combat.event.strongholdTier);
     writer.setUint32(save.goblinRaid.player.character.hp);
     writer.setUint8(save.goblinRaid.player.character.nextAction);
@@ -445,5 +460,327 @@ export function parseSave(save: saveData, initialSize: number): string {
     );
     writer.setBoolean(save.goblinRaid.enemy.character.firstMiss);
     writer.setUint32(save.goblinRaid.enemy.character.barrier);
+    writer.setUint8(save.goblinRaid.enemy.state);
+    writer.setUint8(save.goblinRaid.enemy.attackType);
+    writer.setBoolean(save.goblinRaid.enemy.enemy != undefined);
+    if (save.goblinRaid.enemy.enemy != undefined)
+        writer.setUint16(save.goblinRaid.enemy.enemy);
+    writer.setBoolean(save.goblinRaid.enemy.goblin != undefined);
+    if (save.goblinRaid.enemy.goblin != undefined) {
+        writer.setString(save.goblinRaid.enemy.goblin.name),
+        writer.setUint32(save.goblinRaid.enemy.goblin.hitpoints),
+        writer.setUint32(save.goblinRaid.enemy.goblin.attack),
+        writer.setUint32(save.goblinRaid.enemy.goblin.strength),
+        writer.setUint32(save.goblinRaid.enemy.goblin.defence),
+        writer.setUint32(save.goblinRaid.enemy.goblin.ranged),
+        writer.setUint32(save.goblinRaid.enemy.goblin.magic),
+        writer.setUint8(save.goblinRaid.enemy.goblin.attackType),
+        writer.setInt8(save.goblinRaid.enemy.goblin.image),
+        writer.setArray(save.goblinRaid.enemy.goblin.passives, (writer, value) => writer.setUint16(value)),
+        writer.setUint32(save.goblinRaid.enemy.goblin.corruption)
+    };
+    writer.setBoolean(save.goblinRaid.inProgress);
+    writer.setUint32(save.goblinRaid.spawnTimer.ticksLeft);
+    writer.setUint32(save.goblinRaid.spawnTimer.maxTicks);
+    writer.setBoolean(save.goblinRaid.spawnTimer.active);
+    writer.setBoolean(save.goblinRaid.active);
+    writer.setMap(save.goblinRaid.passives,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setBoolean(value)
+    );
+    writer.setMap(save.goblinRaid.playerModifiers,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+            writer.setFloat64(value[0])
+            writer.setUint32(value[1]);
+            var j = 2;
+            for (var i = 1; i <= 256; i *= 2)
+                if (value[1] & i) {
+                    writer.setUint16(value[j]);
+                    j += 1;
+                }
+        }
+    );
+    writer.setMap(save.goblinRaid.enemyModifiers,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+            writer.setFloat64(value[0])
+            writer.setUint32(value[1]);
+            var j = 2;
+            for (var i = 1; i <= 256; i *= 2)
+                if (value[1] & i) {
+                    writer.setUint16(value[j]);
+                    j += 1;
+                }
+        }
+    );
+    writer.setUint8(save.goblinRaid.state);
+    writer.setUint8(save.goblinRaid.difficulty);
+    writer.setArray(save.goblinRaid.bank.lockedItems, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.goblinRaid.bank.tabs,
+        (writer, value) => writer.setMap(value, 
+            (writer, key) => writer.setUint16(key),
+            (writer, value) => writer.setUint32(value)
+        )
+    );
+    writer.setMap(save.goblinRaid.bank.defaultTabs,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint8(value)
+    )
+    writer.setArray(save.goblinRaid.bank.sortOrder, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.goblinRaid.bank.glowing, (writer, value) => writer.setUint16(value));
+    writer.setMap(save.goblinRaid.bank.icons,
+        (writer, key) => writer.setUint8(key),
+        (writer, value) => writer.setUint16(value)
+    );
+    writer.setUint32(save.goblinRaid.wave);
+    writer.setUint32(save.goblinRaid.waveProgress);
+    writer.setUint32(save.goblinRaid.killCount);
+    writer.setFloat64(save.goblinRaid.start);
+    writer.setArray(save.goblinRaid.ownedCrateItems, (writer, value) => writer.setUint16(value));
+    writer.setMap(save.goblinRaid.randomModifiers,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+            writer.setFloat64(value[0])
+            writer.setUint32(value[1]);
+            var j = 2;
+            for (var i = 1; i <= 256; i *= 2)
+                if (value[1] & i) {
+                    writer.setUint16(value[j]);
+                    j += 1;
+                }
+        }
+    );
+    writer.setBoolean(save.goblinRaid.positiveModifier);
+    writer.setMap(save.goblinRaid.items.weapons, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setMap(save.goblinRaid.items.armour, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setMap(save.goblinRaid.items.ammo, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setMap(save.goblinRaid.items.runes, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setMap(save.goblinRaid.items.food, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setMap(save.goblinRaid.items.passives, 
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => { 
+            writer.setUint32(value.qty);
+            writer.setBoolean(value.alt)
+        }
+    );
+    writer.setUint8(save.goblinRaid.itemCategory);
+    writer.setUint8(save.goblinRaid.positiveModifiers);
+    writer.setUint8(save.goblinRaid.negativeModifiers);
+    writer.setBoolean(save.goblinRaid.paused);
+    writer.setArray(save.goblinRaid.history, (writer, value) => {
+        writer.setArray(value.skills, (writer, value) => writer.setUint32(value));
+        writer.setArray(value.equipment, (writer, value) => writer.setUint16(value));
+        writer.setUint32(value.ammo);
+        writer.setMap(value.inventories,
+            (writer, key) => writer.setUint16(key),
+            (writer, value) => writer.setUint32(value)
+        );
+        writer.setUint16(value.food);
+        writer.setUint32(value.foodQty);
+        writer.setUint32(value.wave);
+        writer.setUint32(value.kills);
+        writer.setFloat64(value.time);
+        writer.setUint32(value.coins);
+        writer.setUint8(value.difficuilty);
+    })
+    writer.setMap(save.minibar,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setArray(value,
+            (writer, value) => writer.setUint16(value)
+        )
+    );
+    writer.setArray(save.pets, (writer, value) => writer.setUint16(value));
+    writer.setMap(save.shop.items,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
+    writer.setFloat64(save.shop.purchases);
+    writer.setMap(save.itemCharges,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
+    writer.setBoolean(save.tutorialComplete);
+    writer.setMap(save.potions.list, 
+        (writer, key) => writer.setUint16(key), 
+        (writer, value ) => {
+            writer.setUint16(value.item);
+            writer.setUint32(value.charges)
+        }
+    );
+    writer.setArray(save.potions.reuse, (writer, value) => writer.setUint16(value));
+
+    writer.setMap(save.stats.woodcutting,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.fishing,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.firemaking,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.cooking,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.mining,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.smithing,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.attack,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.strength,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.defence,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.hitpoints,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.theiving,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.farming,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.ranged,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.fletching,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.crafting,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.runecrafting,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.magic,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.prayer,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.slayer,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.herblore,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.agility,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.summoning,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.items,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setMap(value, 
+            (writer, key) => writer.setUint32(key),
+            (writer, value) => writer.setFloat64(value)
+        )
+    )
+    writer.setMap(save.stats.monsters,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setMap(value, 
+            (writer, key) => writer.setUint32(key),
+            (writer, value) => writer.setFloat64(value)
+        )
+    )
+    writer.setMap(save.stats.general,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.combat,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.goblinRaid,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.astrology,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.shop,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.township,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.cartography,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.archaeology,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.corruption,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
+    writer.setMap(save.stats.harvesting,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => writer.setFloat64(value)
+    );
     return writer.generateSaveString();
 }

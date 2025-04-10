@@ -411,8 +411,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = undefined;
-                    var qty = undefined;
+                    var stackable: number | undefined = undefined;
+                    var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
