@@ -114,7 +114,24 @@ type skill = {
     timer: timer | undefined,
     mastery: mastery | undefined,
     excessData:ArrayBuffer | undefined,
-    skillSpecific: artisanSkill | archaeologySkill | agilitySkill | magicSkill | astrologySkill | cartographySkill | cookingSkill | farmingSkill | firemakingSkill | fishingSkill | fletchingSkill | summoningSkill | thievingSkill | townshipSkill | woodcuttingSkill | miningSkill | corruptionSkill | harvestingSkill
+    skillSpecific:  artisanSkill | 
+                    archaeologySkill | 
+                    agilitySkill | 
+                    magicSkill | 
+                    astrologySkill | 
+                    cartographySkill | 
+                    cookingSkill | 
+                    farmingSkill | 
+                    firemakingSkill | 
+                    fishingSkill | 
+                    fletchingSkill | 
+                    summoningSkill | 
+                    thievingSkill | 
+                    townshipSkill | 
+                    woodcuttingSkill | 
+                    miningSkill | 
+                    corruptionSkill | 
+                    harvestingSkill
 }
 type mastery = {
     actionMastery: Map<number, number>,

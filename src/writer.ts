@@ -21,7 +21,7 @@ export class Writer {
     }
 
     generateSaveString() {
-        const data = new Uint8Array(this.dataView.buffer)
+        const data = new Uint8Array(this.dataView.buffer, 0, this.offset)
         return btoa(strFromU8(zlibSync(data), true));
     }
 
@@ -126,6 +126,35 @@ export class Writer {
     }
 }
 
-export function parseSave(save: saveData): string {
-    return "";
+export function parseSave(save: saveData, initialSize: number): string {
+    var writer = new Writer(initialSize);
+    writer.setStaticString("melvor");
+    writer.setUint32(0);
+    const headerSizeLocation = writer.offset;
+    writer.setMap(save.header.namespaces,
+        (writer, key) => writer.setString(key), 
+        (writer, value) => writer.setMap(value,
+            (writer, key) => writer.setString(key),
+            (writer, value) => writer.setUint16(value)
+        )
+    );
+    writer.setUint32(130);
+    writer.setString(save.header.saveName);
+    writer.setString(save.header.gameMode);
+    writer.setUint16(save.header.skillLevel);
+    writer.setFloat64(save.header.gp);
+    writer.setBoolean(save.header.activeTraining);
+    writer.setString(save.header.activeTrainingName);
+    writer.setFloat64(save.header.tickTime);
+    writer.setFloat64(save.header.saveTime);
+    writer.setSet(save.header.activeNamespaces, (writer, value) => writer.setString(value));
+    writer.setBoolean(save.header.mods != undefined)
+    if (save.header.mods != undefined) {
+        writer.setString(save.header.mods.profileId),
+        writer.setString(save.header.mods.profileName),
+        writer.setSet(save.header.mods.mods, (writer, value) => writer.setUint32(value))
+    }
+    writer.dataView.setUint32(headerSizeLocation - 4, writer.offset - headerSizeLocation);
+    console.log(writer.offset - headerSizeLocation);
+    return writer.generateSaveString();
 }
