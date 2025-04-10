@@ -1,4 +1,5 @@
 import { zlibSync, strFromU8 } from 'fflate';
+import { saveData } from './type';
 
 export class Writer {
     data: ArrayBuffer;
@@ -123,4 +124,8 @@ export class Writer {
         for (var i = 0; i < mapSize; i++) {
         }
     }
+}
+
+export function parseSave(save: saveData): string {
+    return "";
 }

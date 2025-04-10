@@ -79,7 +79,7 @@ class Reader {
     }
 
     getArray(value: (reader: Reader) => any) {
-        var result = [];
+        var result: Array<any> = [];
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
             result.push(value(this))
@@ -87,7 +87,7 @@ class Reader {
         return result;
     }
 
-    getSet(value: (reader: Reader) => any) {
+    getSet(value: (reader: Reader) => any): Set<any> {
         var result = new Set();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
@@ -96,12 +96,13 @@ class Reader {
         return result;
     }
 
-    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number | string) => any) {
+    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number) => any) {
         var result = new Map();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
-            var setKey = key(this);
-            var setValue = value(this, setKey);
+            const setKey = key(this);
+            const tempKey = typeof setKey === "number" ? setKey : 0
+            const setValue = value(this, tempKey);
             result.set(setKey, setValue);
         }
         return result;
@@ -118,10 +119,10 @@ export function parseString(string: string): saveData {
         
         const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
         
-        function findItemFromNamespace(item: number | string) {
+        function findItemFromNamespace(item: number) {
             for (var i = 0; i < knownNamespaces.length; i++){
                 const value = headerNamespaces.get(knownNamespaces[i]);
-                var result = undefined;
+                var result:string | undefined = undefined;
                 value.forEach((v: number, k: string) => {
                     if (v == item)
                         result = k;
@@ -241,8 +242,8 @@ export function parseString(string: string): saveData {
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = undefined;
-                    var qty = undefined;
+                    var stackable: number | undefined = undefined;
+                    var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
@@ -646,7 +647,7 @@ export function parseString(string: string): saveData {
         
         
         // Start Potions
-        const potionList = reader.getMap((reader) => reader.getUint16(), (reader) => [reader.getUint16(), reader.getUint32()]);
+        const potionList = reader.getMap((reader) => reader.getUint16(), (reader) => { return {item: reader.getUint16(), charges: reader.getUint32()}});
         const potionReuse = reader.getArray((reader) => reader.getUint16());
         // End Potions
         
@@ -1375,6 +1376,8 @@ export function parseString(string: string): saveData {
                             meta: reader.getBoolean(),
                             shift: reader.getBoolean()
                         }
+                    } else {
+                        return undefined;
                     }
                 }
             )
@@ -1651,11 +1654,11 @@ export function parseString(string: string): saveData {
                 difficulty: raidDifficulty,
                 bank: {
                     lockedItems: raidlockedItems,
-                    bankTabs: raidbankTabs,
-                    defaultItemTabs: raiddefaultItemTabs,
-                    customSortOrder: raidcustomSortOrder,
-                    glowingItems: raidglowingItems,
-                    tabIcons: raidtabIcons
+                    tabs: raidbankTabs,
+                    defaultTabs: raiddefaultItemTabs,
+                    sortOrder: raidcustomSortOrder,
+                    glowing: raidglowingItems,
+                    icons: raidtabIcons
                 },
                 wave: raidWave,
                 waveProgress: raidWaveProgress,

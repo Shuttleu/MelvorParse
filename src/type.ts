@@ -42,6 +42,286 @@ type equipmentSet = {
     },
     prayers: Array<number>
 }
+type goblin = {
+    name: string,
+    hitpoints: number,
+    attack: number,
+    strength: number,
+    defence: number,
+    ranged: number,
+    magic: number,
+    attackType: number,
+    image: number,
+    passives: Array<number>,
+    corruption: number
+}
+type bank = {
+    lockedItems: Array<number>,
+    tabs: Array<Map<number, number>>,
+    defaultTabs: Map<number, number>,
+    sortOrder: Array<number>,
+    glowing: Array<number>,
+    icons: Map<number, number>
+}
+type raidHistory = {
+    skills: Array<number>,
+    equipment: Array<number>,
+    ammo: number,
+    inventories: Map<number, number>,
+    food: number,
+    foodQty: number,
+    wave: number,
+    kills: number,
+    time: number,
+    coins: number,
+    difficulty: number
+}
+type keybinding = {
+    key: boolean,
+    alt: boolean,
+    ctrl: boolean,
+    meta: boolean,
+    shift: boolean
+}
+type pushNotification = {
+    id: string,
+    startDate: number,
+    endDate: number,
+    notificationType: number,
+    platform: string,
+}
+type currency = {
+    qty: number,
+    stats: Map<number, number>,
+    currencySkills: Map<number, Map<number, number>>
+}
+type capIncrease = {
+    given: Array<number>,
+    increases: Array<number>
+}
+
+
+type skill = {
+    xp: number,
+    skillUnlocked: boolean,
+    relics: Map<number, Map<number, number>>,
+    levelCap: number,
+    abyssalLevelCap: number,
+    skillTrees: Map<number, Map<number, boolean> | number>,
+    abyssalXP: number,
+    realm: number,
+    active: boolean | undefined,
+    timer: timer | undefined,
+    mastery: mastery | undefined,
+    excessData:ArrayBuffer | undefined,
+    skillSpecific: artisanSkill | archaeologySkill | agilitySkill | magicSkill | astrologySkill | cartographySkill | cookingSkill | farmingSkill | firemakingSkill | fishingSkill | fletchingSkill | summoningSkill | thievingSkill | townshipSkill | woodcuttingSkill | miningSkill | corruptionSkill | harvestingSkill
+}
+type mastery = {
+    actionMastery: Map<number, number>,
+    masteryPool: Map<number, number>,
+}
+type artisanSkill = {
+    recipe: number | undefined
+}
+type map = {
+    upgradeActions: number,
+    charges: number,
+    artefactValuesTiny: number,
+    artefactValuesSmall: number,
+    artefactValuesMedium: number,
+    artefactValuesLarge: number,
+    refinements: Map<number, Array<number>>
+}
+type digsite = {
+    maps: Array<map>,
+    selectedMap: number,
+    selectedTools: Array<number>,
+    selectedUpgrade: number
+}
+type museum = {
+    items: Map<number, boolean>,
+    donated: Array<number>
+}
+type archaeologySkill = {
+    digsite: number | undefined,
+    digsites: Map<number, digsite>,
+    museum: museum,
+    hiddenDigsites: Array<number>
+}
+type blueprint = {
+    name: string,
+    obstacles: Map<number, Number>,
+    pillars: Map<number, number>
+}
+type course = {
+    builtObstacles: Map<number, number>,
+    builtPillars: Map<number, number>,
+    blueprints: Map<number, blueprint>
+}
+type agilitySkill = {
+    activeObstacle: number,
+    obstacleBuildCount: Map<number, number>
+    courses: Map<number, course>
+}
+type magicSkill = {
+    spell: number | undefined,
+    conversionItem: number | undefined,
+    selectedRecipe: number | undefined,
+}
+type astrologyRecipie = {
+    recipie: number,
+    standardModsBought: Array<number>,
+    uniqueModsBought: Array<number>,
+    abyssalModsBought: Array<number>
+}
+type astrologySkill = {
+    studied: number | undefined,
+    explored: number | undefined,
+    actions: Array<astrologyRecipie>,
+    dummyRecipies: Array<astrologyRecipie>
+}
+type poi = {
+    discovered: boolean,
+    fastTravelUnlocked: number,
+    discoveryMovesLeft: number,
+    surveyOrder: number
+}
+type cartographyWorldMap = {
+    worldMap: Map< number, Map<number, number>>,
+    position: Array<number>,
+    filterSettings: {
+        markerSettings: Array<boolean>,
+        hiddenFastTravelGroups: Array<number>
+    },
+    pois: Map<number, poi>,
+    bonus: Map<number, boolean>
+}
+type cartographySkill = {
+    worldMaps: Map<number, cartographyWorldMap>,
+    actionMode: number,
+    map: {
+        activeMap: number,
+        surveyQueue: Array<number>,
+        autoSurvey: Array<number> | undefined
+    } | undefined,
+    event: number | undefined
+    paperRecipe: number | undefined
+    digSite: number | undefined
+}
+type cookingSkill = {
+    selectedRecipies: Map<number, number>,
+    passiveCookTimers: Map<number, timer>,
+    stockpileItems: Map<number, {item: number, qty: number}>,
+    activeCategory: number | undefined
+}
+type farmingPlot = {
+    state: number,
+    planted: number | undefined,
+    compost: number | undefined,
+    compostLevel: number,
+    selected: number | undefined,
+    growthTime: number
+}
+type farmingSkill = {
+    plots: Map<number, farmingPlot>,
+    dummyPlots: Map<number, farmingPlot>,
+    growthTimers: Array<timer>
+}
+type firemakingSkill = {
+    bonfireTimer: timer,
+    recipe: number | undefined,
+    bonfireRecipe: number | undefined,
+    oilTimer: timer,
+    oiledLogRecipe: number | undefined,
+    oilRecipe: number | undefined,
+}
+type fishingSkill = {
+    secretAreaUnlocked: boolean,
+    area: number | undefined,
+    selectedAreaFish: Map<number, number>,
+    hiddenAreas: Array<number>,
+    contest:  {
+        completion: Array<boolean>,
+        mastery: Array<boolean>
+    } | undefined
+}
+type fletchingSkill = {
+    recipe: number | undefined,
+    altRecipies: Map<number, number>
+}
+type summoningSkill = {
+    recipe: number | undefined,
+    selectedNonShardCosts: Map<number, number>,
+    marksUnlocked: Map<number, number>
+}
+type thievingSkill = {
+    stunTimer: timer,
+    area: number | undefined,
+    npc: number | undefined,
+    hiddenAreas: Array<number>,
+    stunState: number
+}
+type townshipResource = {
+    qty: number,
+    cap: number
+}
+type townshipBiome = {
+    buildingsBuilt: Map<number, number>,
+    buildingEfficiency: Map<number, number>
+}
+type townshipSkill = {
+    townData: {
+        worship: number,
+        created: boolean,
+        seasonTicksRemaining: number,
+        season: number | undefined,
+        previousSeason: number | undefined,
+        health: number,
+        souls: number,
+        abyssalWaveTicksRemaining: number
+    },
+    resources: Map<number, townshipResource>,
+    dummyResources: Map<number, townshipResource>,
+    biomes: Map<number, townshipBiome>,
+    dummyBiomes: Map<number, townshipBiome>,
+    legacyTicks: number,
+    totalTicks: number,
+    tasksCompleted: Array<number>,
+    townshipConverted: boolean,
+    casualTasks: {
+        completed: number,
+        currentCasualTasks: Map<number, Array<number>>,
+        newTaskTimer: timer
+    },
+    tickTimer: timer,
+    displayReworkNotification: boolean,
+    gpRefunded: number,
+    abyssalWaveTimer: timer
+}
+type woodcuttingSkill = {
+    activetrees: Array<number>
+}
+type rock = {
+    isRespawning: boolean,
+    currentHP: number,
+    maxHP: number
+}
+type miningSkill = {
+    selectedRock: number | undefined,
+    rocks: Map<number, rock>,
+    rockRespawnTimers: Map<number, timer>,
+    passiveRegenTimer: timer
+}
+type corruptionSkill = {
+    corruptionEffects: Map<number, boolean>,
+    corruptionUnlockedRows: Array<number>
+}
+type harvestingSkill = {
+    selectedVein: number | undefined,
+    veins: Map<number, {currentIntensity: number, maxIntensity: number}>,
+    veinDecayTimer: timer
+}
+
 export type saveData = {
     header: {
         saveVersion: number,
@@ -69,14 +349,7 @@ export type saveData = {
     merchantsPermitRead: boolean,
     gameMode: number,
     characterName: string,
-    bank: {
-        lockedItems: Array<number>,
-        tabs: Array<Map<number, number>>,
-        defaultTabs: Map<number, number>,
-        sortOrder: Array<number>,
-        glowing: Array<number>,
-        icons: Map<number, number>
-    },
+    bank: bank,
     combat: {
         player: {
             character: character,
@@ -128,8 +401,8 @@ export type saveData = {
             passivesSelected: Array<number>,
             dungeonLength: number,
             dungeonCompletions: Map<number, number>,
-            activeEventAreas: number,
-            progress: Map<number, number>,
+            activeEventAreas: Map<number, number>,
+            progress: number,
             strongholdTier: number
         }
     },
@@ -155,223 +428,216 @@ export type saveData = {
             state: number,
             attackType: number,
             enemy: number | undefined,
-            goblin: goblin
+            goblin: goblin | undefined
         },
-        inProgress: raidfightInProgess,
+        inProgress: boolean,
         spawnTimer: timer,
-        active: raidcombatActive,
-        passives: raidcombatPassives,
-        playerModifiers: raidPlayerModifiers,
-        enemyModifiers: raidEnemyModifiers,
-        state: raidState,
-        difficulty: raidDifficulty,
-        bank: {
-            lockedItems: raidlockedItems,
-            bankTabs: raidbankTabs,
-            defaultItemTabs: raiddefaultItemTabs,
-            customSortOrder: raidcustomSortOrder,
-            glowingItems: raidglowingItems,
-            tabIcons: raidtabIcons
-        },
-        wave: raidWave,
-        waveProgress: raidWaveProgress,
-        killCount: raidKillCount,
-        start: raidStart,
-        ownedCrateItems: raidOwnedCrateItems,
-        randomModifiers: raidRandomModifiers,
-        positiveModifier: raidSelectedPositiveModifier,
+        active: boolean,
+        passives: Map<number, boolean>,
+        playerModifiers: Map<number, Array<number>>,
+        enemyModifiers: Map<number, Array<number>>,
+        state: number,
+        difficulty: number,
+        bank: bank,
+        wave: number,
+        waveProgress: number,
+        killCount: number,
+        start: number,
+        ownedCrateItems: Array<number>,
+        randomModifiers: Map<number, Array<number>>,
+        positiveModifier: boolean,
         items: {
-            weapons: raidItemWeapons,
-            armour: raidItemArmour,
-            ammo: raidItemAmmo,
-            runes: raidItemRunes,
-            food: raidItemFoods,
-            passives: raidItemPassives
+            weapons: Map<number, { qty: number, alt: boolean}>,
+            armour: Map<number, { qty: number, alt: boolean}>,
+            ammo: Map<number, { qty: number, alt: boolean}>,
+            runes: Map<number, { qty: number, alt: boolean}>,
+            food: Map<number, { qty: number, alt: boolean}>,
+            passives: Map<number, { qty: number, alt: boolean}>
         },
-        itemCategory: raidItemCategory,
-        positiveModifiers: raidPosMods,
-        negativeModifiers: raidNegMods,
-        paused: raidPaused,
-        history: raidHistories
+        itemCategory: number,
+        positiveModifiers: number,
+        negativeModifiers: number,
+        paused: boolean,
+        history: Array<raidHistory>
     },
-    minibar: MinibarItems,
-    pets: petList,
+    minibar: Map<number, Array<number>>,
+    pets: Array<number>,
     shop: {
-        items: shopItems,
-        purchases: purchaseQty
+        items: Map<number, number>,
+        purchases: number
     },
-    itemCharges: itemCharges,
-    tutorialComplete: tutorialComplete,
+    itemCharges: Map<number, number>,
+    tutorialComplete: boolean,
     potions: {
-        list: potionList,
-        reuse: potionReuse
+        list: Map<number, {item: number, qty: number}>,
+        reuse: Array<number>
     },
     stats: {
-        woodcutting: woodcuttingStats,
-        fishing: fishingStats,
-        firemaking: firemakingStats,
-        cooking: cookingStats,
-        mining: miningStats,
-        smithing: smithingStats,
-        attack: attackStats,
-        strength: strengthStats,
-        defence: defenceStats,
-        hitpoints: hitpointsStats,
-        theiving: theivingStats,
-        farming: farmingStats,
-        ranged: rangedStats,
-        fletching: fletchingStats,
-        crafting: craftingStats,
-        runecrafting: runecraftingStats,
-        magic: magicStats,
-        prayer: prayerStats,
-        slayer: slayerStats,
-        herblore: herbloreStats,
-        agility: agilityStats,
-        summoning: summoningStats,
-        items: itemsStats,
-        monsters: monstersStats,
-        general: generalStats,
-        combat: combatStats,
-        goblinRaid: goblinStats,
-        astrology: astrologyStats,
-        shop: shopStats,
-        township: townshipStats,
-        cartography: cartographyStats,
-        archaeology: archaeologyStats,
-        corruption: corruptionStats,
-        harvesting: harvestingStats
+        woodcutting: Map<number, number>,
+        fishing: Map<number, number>,
+        firemaking: Map<number, number>,
+        cooking: Map<number, number>,
+        mining: Map<number, number>,
+        smithing: Map<number, number>,
+        attack: Map<number, number>,
+        strength: Map<number, number>,
+        defence: Map<number, number>,
+        hitpoints: Map<number, number>,
+        theiving: Map<number, number>,
+        farming: Map<number, number>,
+        ranged: Map<number, number>,
+        fletching: Map<number, number>,
+        crafting: Map<number, number>,
+        runecrafting: Map<number, number>,
+        magic: Map<number, number>,
+        prayer: Map<number, number>,
+        slayer: Map<number, number>,
+        herblore: Map<number, number>,
+        agility: Map<number, number>,
+        summoning: Map<number, number>,
+        items: Map<number, Map<number, number>>,
+        monsters: Map<number, Map<number, number>>,
+        general: Map<number, number>,
+        combat: Map<number, number>,
+        goblinRaid: Map<number, number>,
+        astrology: Map<number, number>,
+        shop: Map<number, number>,
+        township: Map<number, number>,
+        cartography: Map<number, number>,
+        archaeology: Map<number, number>,
+        corruption: Map<number, number>,
+        harvesting: Map<number, number>
     },
     settings: {
-        continueIfBankFull: settingcontinueIfBankFull,
-        continueThievingOnStun: settingcontinueThievingOnStun,
-        autoRestartDungeon: settingautoRestartDungeon,
-        autoCloudSave: settingautoCloudSave,
-        darkMode: settingdarkMode,
-        showGPNotifications: settingshowGPNotifications,
-        enableAccessibility: settingenableAccessibility,
-        showEnemySkillLevels: settingshowEnemySkillLevels,
-        showCloseConfirmations: settingshowCloseConfirmations,
-        hideThousandsSeperator: settinghideThousandsSeperator,
-        showVirtualLevels: settingshowVirtualLevels,
-        showSaleConfirmations: settingshowSaleConfirmations,
-        showShopConfirmations: settingshowShopConfirmations,
-        pauseOnUnfocus: settingpauseOnUnfocus,
-        showCombatMinibar: settingshowCombatMinibar,
-        showCombatMinibarCombat: settingshowCombatMinibarCombat,
-        showSkillingMinibar: settingshowSkillingMinibar,
-        useCombinationRunes: settinguseCombinationRunes,
-        enableAutoSlayer: settingenableAutoSlayer,
-        showItemNotifications: settingshowItemNotifications,
-        useSmallLevelUpNotifications: settinguseSmallLevelUpNotifications,
-        useDefaultBankBorders: settinguseDefaultBankBorders,
-        defaultToCurrentEquipSet: settingdefaultToCurrentEquipSet,
-        hideMaxLevelMasteries: settinghideMaxLevelMasteries,
-        showMasteryCheckpointconfirmations: settingshowMasteryCheckpointconfirmations,
-        enableOfflinePushNotifications: settingenableOfflinePushNotifications,
-        enableFarmingPushNotifications: settingenableFarmingPushNotifications,
-        enableOfflineCombat: settingenableOfflineCombat,
-        enableMiniSidebar: settingenableMiniSidebar,
-        enableAutoEquipFood: settingenableAutoEquipFood,
-        enableAutoSwapFood: settingenableAutoSwapFood,
-        enablePerfectCooking: settingenablePerfectCooking,
-        showCropDestructionConfirmations: settingshowCropDestructionConfirmations,
-        showAstrologyMaxRollConfirmations: settingshowAstrologyMaxRollConfirmations,
-        showQuantityInItemNotifications: settingshowQuantityInItemNotifications,
-        showItemPreservationNotifications: settingshowItemPreservationNotifications,
-        showSlayerCoinNotifications: settingshowSlayerCoinNotifications,
-        showEquipmentSetsInCombatMinibar: settingshowEquipmentSetsInCombatMinibar,
-        showBarsInCombatMinibar: settingshowBarsInCombatMinibar,
-        showCombatStunNotifications: settingshowCombatStunNotifications,
-        showCombatSleepNotifications: settingshowCombatSleepNotifications,
-        showSummoningMarkDiscoveryModals: settingshowSummoningMarkDiscoveryModals,
-        enableCombatDamageSplashes: settingenableCombatDamageSplashes,
-        enableProgressBars: settingenableProgressBars,
-        showTierIPotions: settingshowTierIPotions,
-        showTierIIPotions: settingshowTierIIPotions,
-        showTierIIIPotions: settingshowTierIIIPotions,
-        showTierIVPotions: settingshowTierIVPotions,
-        showNeutralAttackModifiers: settingshowNeutralAttackModifiers,
-        defaultPageOnLoad: settingdefaultPageOnLoad,
-        formatNumberSetting: settingformatNumberSetting,
-        bankSortOrder: settingbankSortOrder,
-        colourBlindMode: settingcolourBlindMode,
-        enableEyebleachMode: settingenableEyebleachMode,
-        enableQuickConvert: settingenableQuickConvert,
-        showLockedTownshipBuildings: settingshowLockedTownshipBuildings,
-        useNewNotifications: settinguseNewNotifications,
-        notificationHorizontalPosition: settingnotificationHorizontalPosition,
-        notificationDisappearDelay: settingnotificationDisappearDelay,
-        showItemNamesInNotifications: settingshowItemNamesInNotifications,
-        importanceSummoningMarkFound: settingimportanceSummoningMarkFound,
-        importanceErrorMessages: settingimportanceErrorMessages,
-        enableScrollableBankTabs: settingenableScrollableBankTabs,
-        showWikiLinks: settingshowWikiLinks,
-        disableHexGridOutsideSight: settingdisableHexGridOutsideSight,
-        mapTextureQuality: settingmapTextureQuality,
-        enableMapAntialiasing: settingenableMapAntialiasing,
-        showSkillXPNotifications: settingshowSkillXPNotifications,
-        backgroundImage: settingbackgroundImage,
-        superDarkMode: settingsuperDarkMode,
-        showExpansionBackgroundColours: settingshowExpansionBackgroundColours,
-        showCombatAreaWarnings: settingshowCombatAreaWarnings,
-        useCompactNotifications: settinguseCompactNotifications,
-        useLegacyNotifications: settinguseLegacyNotifications,
-        useCat: settinguseCat,
-        throttleFrameRateOnInactivity: settingthrottleFrameRateOnInactivity,
-        cartographyFrameRateCap: settingcartographyFrameRateCap,
-        toggleBirthdayEvent: settingtoggleBirthdayEvent,
-        toggleDiscordRPC: settingtoggleDiscordRPC,
-        genericArtefactAllButOne: settinggenericArtefactAllButOne,
-        hiddenMasteryNamespaces: settinghiddenMasteryNamespaces,
-        enableDoubleClickEquip: settingenableDoubleClickEquip,
-        enableDoubleClickOpen: settingenableDoubleClickOpen,
-        enableDoubleClickBury: settingenableDoubleClickBury,
-        showAbyssalPiecesNotifications: settingshowAbyssalPiecesNotifications,
-        showAbyssalSlayerCoinNotifications: settingshowAbyssalSlayerCoinNotifications,
-        enablePermaCorruption: settingenablePermaCorruption,
-        showAPNextToShopSidebar: settingshowAPNextToShopSidebar,
-        showASCNextToSlayerSidebar: settingshowASCNextToSlayerSidebar,
-        sidebarLevels: settingsidebarLevels,
-        showAbyssalXPNotifications: settingshowAbyssalXPNotifications,
-        showSPNextToPrayerSidebar: settingshowSPNextToPrayerSidebar,
-        enableStickyBankTabs: settingenableStickyBankTabs,
-        useLegacyRealmSelection: settinguseLegacyRealmSelection,
-        showOpacityForSkillNavs: settingshowOpacityForSkillNavs,
-        bankFilterShowAll: settingbankFilterShowAll,
-        bankFilterShowDemo: settingbankFilterShowDemo,
-        bankFilterShowFull: settingbankFilterShowFull,
-        bankFilterShowTotH: settingbankFilterShowTotH,
-        bankFilterShowAoD: settingbankFilterShowAoD,
-        bankFilterShowItA: settingbankFilterShowItA,
-        bankFilterShowDamageReduction: settingbankFilterShowDamageReduction,
-        bankFilterShowAbyssalResistance: settingbankFilterShowAbyssalResistance,
-        bankFilterShowNormalDamage: settingbankFilterShowNormalDamage,
-        bankFilterShowAbyssalDamage: settingbankFilterShowAbyssalDamage,
-        bankFilterShowSkillXP: settingbankFilterShowSkillXP,
-        bankFilterShowAbyssalXP: settingbankFilterShowAbyssalXP,
-        alwaysShowRealmSelectAgility: settingalwaysShowRealmSelectAgility,
-        enableSwipeSidebar: settingenableSwipeSidebar,
-        keyBindings: keyBindings
+        continueIfBankFull: boolean,
+        continueThievingOnStun: boolean,
+        autoRestartDungeon: boolean,
+        autoCloudSave: boolean,
+        darkMode: boolean,
+        showGPNotifications: boolean,
+        enableAccessibility: boolean,
+        showEnemySkillLevels: boolean,
+        showCloseConfirmations: boolean,
+        hideThousandsSeperator: boolean,
+        showVirtualLevels: boolean,
+        showSaleConfirmations: boolean,
+        showShopConfirmations: boolean,
+        pauseOnUnfocus: boolean,
+        showCombatMinibar: boolean,
+        showCombatMinibarCombat: boolean,
+        showSkillingMinibar: boolean,
+        useCombinationRunes: boolean,
+        enableAutoSlayer: boolean,
+        showItemNotifications: boolean,
+        useSmallLevelUpNotifications: boolean,
+        useDefaultBankBorders: boolean,
+        defaultToCurrentEquipSet: boolean,
+        hideMaxLevelMasteries: boolean,
+        showMasteryCheckpointconfirmations: boolean,
+        enableOfflinePushNotifications: boolean,
+        enableFarmingPushNotifications: boolean,
+        enableOfflineCombat: boolean,
+        enableMiniSidebar: boolean,
+        enableAutoEquipFood: boolean,
+        enableAutoSwapFood: boolean,
+        enablePerfectCooking: boolean,
+        showCropDestructionConfirmations: boolean,
+        showAstrologyMaxRollConfirmations: boolean,
+        showQuantityInItemNotifications: boolean,
+        showItemPreservationNotifications: boolean,
+        showSlayerCoinNotifications: boolean,
+        showEquipmentSetsInCombatMinibar: boolean,
+        showBarsInCombatMinibar: boolean,
+        showCombatStunNotifications: boolean,
+        showCombatSleepNotifications: boolean,
+        showSummoningMarkDiscoveryModals: boolean,
+        enableCombatDamageSplashes: boolean,
+        enableProgressBars: boolean,
+        showTierIPotions: boolean,
+        showTierIIPotions: boolean,
+        showTierIIIPotions: boolean,
+        showTierIVPotions: boolean,
+        showNeutralAttackModifiers: boolean,
+        defaultPageOnLoad: number,
+        formatNumberSetting: number,
+        bankSortOrder: number,
+        colourBlindMode: number,
+        enableEyebleachMode: boolean,
+        enableQuickConvert: boolean,
+        showLockedTownshipBuildings: boolean,
+        useNewNotifications: boolean,
+        notificationHorizontalPosition: number,
+        notificationDisappearDelay: number,
+        showItemNamesInNotifications: boolean,
+        importanceSummoningMarkFound: boolean,
+        importanceErrorMessages: boolean,
+        enableScrollableBankTabs: boolean,
+        showWikiLinks: boolean,
+        disableHexGridOutsideSight: boolean,
+        mapTextureQuality: number,
+        enableMapAntialiasing: boolean,
+        showSkillXPNotifications: boolean,
+        backgroundImage: number,
+        superDarkMode: boolean,
+        showExpansionBackgroundColours: boolean,
+        showCombatAreaWarnings: boolean,
+        useCompactNotifications: boolean,
+        useLegacyNotifications: boolean,
+        useCat: boolean,
+        throttleFrameRateOnInactivity: boolean,
+        cartographyFrameRateCap: number,
+        toggleBirthdayEvent: boolean,
+        toggleDiscordRPC: boolean,
+        genericArtefactAllButOne: boolean,
+        hiddenMasteryNamespaces: Array<string>,
+        enableDoubleClickEquip: boolean,
+        enableDoubleClickOpen: boolean,
+        enableDoubleClickBury: boolean,
+        showAbyssalPiecesNotifications: boolean,
+        showAbyssalSlayerCoinNotifications: boolean,
+        enablePermaCorruption: boolean,
+        showAPNextToShopSidebar: boolean,
+        showASCNextToSlayerSidebar: boolean,
+        sidebarLevels: number,
+        showAbyssalXPNotifications: boolean,
+        showSPNextToPrayerSidebar: boolean,
+        enableStickyBankTabs: boolean,
+        useLegacyRealmSelection: boolean,
+        showOpacityForSkillNavs: boolean,
+        bankFilterShowAll: boolean,
+        bankFilterShowDemo: boolean,
+        bankFilterShowFull: boolean,
+        bankFilterShowTotH: boolean,
+        bankFilterShowAoD: boolean,
+        bankFilterShowItA: boolean,
+        bankFilterShowDamageReduction: boolean,
+        bankFilterShowAbyssalResistance: boolean,
+        bankFilterShowNormalDamage: boolean,
+        bankFilterShowAbyssalDamage: boolean,
+        bankFilterShowSkillXP: boolean,
+        bankFilterShowAbyssalXP: boolean,
+        alwaysShowRealmSelectAgility: boolean,
+        enableSwipeSidebar: boolean,
+        keyBindings: Map<number, Array<keybinding | undefined>>
     },
-    news: news,
-    lastLoadedGameVersion: lastLoadedGameVersion,
-    scheduledPushNotifications: scheduledPushNotifications,
-    skills: skills,
-    mods: mods,
+    news: Array<string>,
+    lastLoadedGameVersion: string,
+    scheduledPushNotifications: Array<pushNotification>,
+    skills: Map<number, skill>,
+    mods: Map<number, {settings: string, storage: string}>,
     completion: {
-        completion: completion,
-        birthdayCompletions: birthdayCompletions,
-        clueHuntStep: clueHuntStep,
-        areaCompletions: areaCompletions,
-        strongholdCompletions: strongholdCompletions
+        completion: string,
+        birthdayCompletions: Array<boolean>,
+        clueHuntStep: number,
+        areaCompletions: Map<number, number>,
+        strongholdCompletions: Map<number, number>
     },
-    currencies: currencies,
+    currencies: Map<number, currency>,
     levelCapIncreases: {
-        increases: levelCapIncreases,
-        selected: levelCapIncreasesSelected,
-        bought: levelCapIncreasesBought,
-        abyssalBought: abyssalLevelCapIncreasesBought,
+        increases: Map<number, capIncrease>,
+        selected: Array<number>,
+        bought: number,
+        abyssalBought: number,
     },
-    realm: realm
+    realm: number
 }
