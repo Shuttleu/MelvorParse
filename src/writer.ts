@@ -107,17 +107,34 @@ export class Writer {
         })
     }
 
-    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any) => void, setValue: (writer: Writer, value: any) => void) {
+    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any) => void, setValue: (writer: Writer, value: any, key: number) => void) {
         const mapSize = map.size;
         this.setUint32(mapSize);
         map.forEach((value, key) => {
             setKey(this, key);
-            setValue(this, value);
+            const tempKey = typeof key === "number" ? key : 0
+            setValue(this, value, tempKey);
         })
     }
 }
 
 export function parseSave(save: saveData, initialSize: number): string {
+    const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
+        
+    function findItemFromNamespace(item: number) {
+        for (var i = 0; i < knownNamespaces.length; i++){
+            const value = save.header.namespaces.get(knownNamespaces[i]);
+            var result:string | undefined = undefined;
+            if (value != undefined)
+                value.forEach((v: number, k: string) => {
+                    if (v == item)
+                        result = k;
+                });
+            if (result != undefined) return result;
+        }
+        return "Unknown";
+    }
+
     var writer = new Writer(initialSize);
     writer.setStaticString("melvor");
     const headerSizeLocation = writer.offset;
@@ -782,5 +799,655 @@ export function parseSave(save: saveData, initialSize: number): string {
         (writer, key) => writer.setUint32(key),
         (writer, value) => writer.setFloat64(value)
     );
+
+    writer.setBoolean(save.settings.continueIfBankFull);
+    writer.setBoolean(save.settings.continueThievingOnStun);
+    writer.setBoolean(save.settings.autoRestartDungeon);
+    writer.setBoolean(save.settings.autoCloudSave);
+    writer.setBoolean(save.settings.darkMode);
+    writer.setBoolean(save.settings.showGPNotifications);
+    writer.setBoolean(save.settings.enableAccessibility);
+    writer.setBoolean(save.settings.showEnemySkillLevels);
+    writer.setBoolean(save.settings.showCloseConfirmations);
+    writer.setBoolean(save.settings.hideThousandsSeperator);
+    writer.setBoolean(save.settings.showVirtualLevels);
+    writer.setBoolean(save.settings.showSaleConfirmations);
+    writer.setBoolean(save.settings.showShopConfirmations);
+    writer.setBoolean(save.settings.pauseOnUnfocus);
+    writer.setBoolean(save.settings.showCombatMinibar);
+    writer.setBoolean(save.settings.showCombatMinibarCombat);
+    writer.setBoolean(save.settings.showSkillingMinibar);
+    writer.setBoolean(save.settings.useCombinationRunes);
+    writer.setBoolean(save.settings.enableAutoSlayer);
+    writer.setBoolean(save.settings.showItemNotifications);
+    writer.setBoolean(save.settings.useSmallLevelUpNotifications);
+    writer.setBoolean(save.settings.useDefaultBankBorders);
+    writer.setBoolean(save.settings.defaultToCurrentEquipSet);
+    writer.setBoolean(save.settings.hideMaxLevelMasteries);
+    writer.setBoolean(save.settings.showMasteryCheckpointconfirmations);
+    writer.setBoolean(save.settings.enableOfflinePushNotifications);
+    writer.setBoolean(save.settings.enableFarmingPushNotifications);
+    writer.setBoolean(save.settings.enableOfflineCombat);
+    writer.setBoolean(save.settings.enableMiniSidebar);
+    writer.setBoolean(save.settings.enableAutoEquipFood);
+    writer.setBoolean(save.settings.enableAutoSwapFood);
+    writer.setBoolean(save.settings.enablePerfectCooking);
+    writer.setBoolean(save.settings.showCropDestructionConfirmations);
+    writer.setBoolean(save.settings.showAstrologyMaxRollConfirmations);
+    writer.setBoolean(save.settings.showQuantityInItemNotifications);
+    writer.setBoolean(save.settings.showItemPreservationNotifications);
+    writer.setBoolean(save.settings.showSlayerCoinNotifications);
+    writer.setBoolean(save.settings.showEquipmentSetsInCombatMinibar);
+    writer.setBoolean(save.settings.showBarsInCombatMinibar);
+    writer.setBoolean(save.settings.showCombatStunNotifications);
+    writer.setBoolean(save.settings.showCombatSleepNotifications);
+    writer.setBoolean(save.settings.showSummoningMarkDiscoveryModals);
+    writer.setBoolean(save.settings.enableCombatDamageSplashes);
+    writer.setBoolean(save.settings.enableProgressBars);
+    writer.setBoolean(save.settings.showTierIPotions);
+    writer.setBoolean(save.settings.showTierIIPotions);
+    writer.setBoolean(save.settings.showTierIIIPotions);
+    writer.setBoolean(save.settings.showTierIVPotions);
+    writer.setBoolean(save.settings.showNeutralAttackModifiers);
+    writer.setUint16(save.settings.defaultPageOnLoad);
+    writer.setUint8(save.settings.formatNumberSetting);
+    writer.setUint8(save.settings.bankSortOrder);
+    writer.setUint8(save.settings.colourBlindMode);
+    writer.setBoolean(save.settings.enableEyebleachMode);
+    writer.setBoolean(save.settings.enableQuickConvert);
+    writer.setBoolean(save.settings.showLockedTownshipBuildings);
+    writer.setBoolean(save.settings.useNewNotifications);
+    writer.setUint8(save.settings.notificationHorizontalPosition);
+    writer.setUint8(save.settings.notificationDisappearDelay);
+    writer.setBoolean(save.settings.showItemNamesInNotifications);
+    writer.setBoolean(save.settings.importanceSummoningMarkFound);
+    writer.setBoolean(save.settings.importanceErrorMessages);
+    writer.setBoolean(save.settings.enableScrollableBankTabs);
+    writer.setBoolean(save.settings.showWikiLinks);
+    writer.setBoolean(save.settings.disableHexGridOutsideSight);
+    writer.setUint8(save.settings.mapTextureQuality);
+    writer.setBoolean(save.settings.enableMapAntialiasing);
+    writer.setBoolean(save.settings.showSkillXPNotifications);
+    writer.setInt8(save.settings.backgroundImage);
+    writer.setBoolean(save.settings.superDarkMode);
+    writer.setBoolean(save.settings.showExpansionBackgroundColours);
+    writer.setBoolean(save.settings.showCombatAreaWarnings);
+    writer.setBoolean(save.settings.useCompactNotifications);
+    writer.setBoolean(save.settings.useLegacyNotifications);
+    writer.setBoolean(save.settings.useCat);
+    writer.setBoolean(save.settings.throttleFrameRateOnInactivity);
+    writer.setUint16(save.settings.cartographyFrameRateCap);
+    writer.setBoolean(save.settings.toggleBirthdayEvent);
+    writer.setBoolean(save.settings.toggleDiscordRPC);
+    writer.setBoolean(save.settings.genericArtefactAllButOne);
+    writer.setArray(save.settings.hiddenMasteryNamespaces, (writer, value) => writer.setString(value));
+    writer.setBoolean(save.settings.enableDoubleClickEquip);
+    writer.setBoolean(save.settings.enableDoubleClickOpen);
+    writer.setBoolean(save.settings.enableDoubleClickBury);
+    writer.setBoolean(save.settings.showAbyssalPiecesNotifications);
+    writer.setBoolean(save.settings.showAbyssalSlayerCoinNotifications);
+    writer.setBoolean(save.settings.enablePermaCorruption);
+    writer.setBoolean(save.settings.showAPNextToShopSidebar);
+    writer.setBoolean(save.settings.showASCNextToSlayerSidebar);
+    writer.setUint8(save.settings.sidebarLevels);
+    writer.setBoolean(save.settings.showAbyssalXPNotifications);
+    writer.setBoolean(save.settings.showSPNextToPrayerSidebar);
+    writer.setBoolean(save.settings.enableStickyBankTabs);
+    writer.setBoolean(save.settings.useLegacyRealmSelection);
+    writer.setBoolean(save.settings.showOpacityForSkillNavs);
+    writer.setBoolean(save.settings.bankFilterShowAll);
+    writer.setBoolean(save.settings.bankFilterShowDemo);
+    writer.setBoolean(save.settings.bankFilterShowFull);
+    writer.setBoolean(save.settings.bankFilterShowTotH);
+    writer.setBoolean(save.settings.bankFilterShowAoD);
+    writer.setBoolean(save.settings.bankFilterShowItA);
+    writer.setBoolean(save.settings.bankFilterShowDamageReduction);
+    writer.setBoolean(save.settings.bankFilterShowAbyssalResistance);
+    writer.setBoolean(save.settings.bankFilterShowNormalDamage);
+    writer.setBoolean(save.settings.bankFilterShowAbyssalDamage);
+    writer.setBoolean(save.settings.bankFilterShowSkillXP);
+    writer.setBoolean(save.settings.bankFilterShowAbyssalXP);
+    writer.setBoolean(save.settings.alwaysShowRealmSelectAgility);
+    writer.setBoolean(save.settings.enableSwipeSidebar);
+    writer.setArray(save.news, (writer, value) => writer.setString(value));   
+    writer.setString(save.lastLoadedGameVersion);
+    writer.setArray(save.scheduledPushNotifications,
+        (writer, value) => {
+            writer.setString(value.id),
+            writer.setFloat64(value.startDate),
+            writer.setFloat64(value.endDate),
+            writer.setUint8(value.notificationType),
+            writer.setString(value.platform)
+        }
+    );
+
+
+
+    writer.setMap(save.skills, 
+        (writer, key) => writer.setUint16(key), 
+        (writer, value, k) => {
+            const skillSizeLocation = writer.offset
+            writer.setUint32(0);
+            writer.setFloat64(value.xp);
+            writer.setBoolean(value.skillUnlocked);
+            writer.setMap(value.relics,
+                (writer, key) => writer.setUint16(key),
+                (writer, value) => writer.setMap(value, 
+                    (writer, key) => writer.setUint16(key),
+                    (writer, value) => writer.setUint8(value)
+                )
+            );
+            writer.setInt16(value.levelCap);
+            writer.setInt16(value.abyssalLevelCap);
+            writer.setMap(value.skillTrees,
+                (writer, key) => writer.setUint16(key),
+                (writer, value) => {
+                    writer.setMap(value[0],
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setBoolean(value)
+                    );
+                    writer.setUint8(value[1])
+                }
+            );
+            writer.setFloat64(value.abyssalXP);
+            writer.setUint16(value.realm);
+            const skillName = findItemFromNamespace(k);
+            if (!["Attack", "Strength", "Defence", "Hitpoints", "Ranged", "Prayer", "Slayer"].includes(skillName)) {
+                if (!["Township", "Corruption", "Cartography"].includes(skillName)) {
+                    writer.setMap(value.mastery.actionMastery,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setFloat64(value)    
+                    );
+                    writer.setMap(value.mastery.masteryPool,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setFloat64(value)    
+                    );
+                    if (skillName != "Farming") {
+                        writer.setBoolean(value.active);
+                        writer.setUint32(value.timer.ticksLeft);
+                        writer.setUint32(value.timer.maxTicks);
+                        writer.setBoolean(value.timer.active);
+                    }
+                }
+                if (["Herblore", "Crafting", "Runecrafting", "Smithing"].includes(skillName)) {
+                    writer.setBoolean(value.skillSpecific.recipe != undefined);
+                    if (value.skillSpecific.recipe != undefined)
+                        writer.setUint16(value.skillSpecific.recipe);
+                } else if (skillName == "Archaeology") {
+                    writer.setBoolean(value.skillSpecific.digsite != undefined);
+                    if (value.skillSpecific.digsite != undefined)
+                        writer.setUint16(value.skillSpecific.digsite);
+                    writer.setMap(value.skillSpecific.digsites,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setArray(value.maps,
+                                (writer, value) => {
+                                    writer.setUint32(value.upgradeActions);
+                                    writer.setUint32(value.charges);
+                                    writer.setUint16(value.artefactValuesTiny);
+                                    writer.setUint16(value.artefactValuesSmall);
+                                    writer.setUint16(value.artefactValuesMedium);
+                                    writer.setUint16(value.artefactValuesLarge);
+                                    writer.setMap(value.refinements, 
+                                        (writer, key) => writer.setUint16(key),
+                                        (writer, value) => {
+                                            writer.setFloat64(value[0]);
+                                            writer.setUint32(value[1]);
+                                            var j = 2
+                                            for (var i = 1; i <= 256; i *= 2)
+                                                if (value[1] & i) {
+                                                    writer.setUint16(value[j]);
+                                                    j += 1;
+                                                }
+                                        }
+                                    )
+                                }
+                            );
+                            writer.setInt8(value.selectedMap);
+                            writer.setArray(value.selectedTools, (writer, value) => writer.setUint16(value));
+                            writer.setUint8(value.selectedUpgrade);
+                        }
+                    ),
+                    writer.setMap(value.skillSpecific.museum.items,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setBoolean(value)
+                    );
+                    writer.setArray(value.skillSpecific.museum.donated, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.hiddenDigsites, (writer, value) => writer.setUint16(value));
+                } else if (skillName == "Agility") {
+                    writer.setInt16(value.skillSpecific.activeObstacle),
+                    writer.setMap(value.skillSpecific.obstacleBuildCount,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint32(value)
+                    ),
+                    writer.setMap(value.skillSpecific.course,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setMap(value.builtObstacles,
+                                (writer, key) => writer.setUint8(key),
+                                (writer, value) => writer.setUint16(value)
+                            ),
+                            writer.setMap(value.builtPillars,
+                                (writer, key) => writer.setUint8(key),
+                                (writer, value) => writer.setUint16(value)
+                            ),
+                            writer.setMap(value.blueprints,
+                                (writer, key) => writer.setUint8(key),
+                                (writer, value) => {
+                                    writer.setString(value.name),
+                                    writer.setMap(value.obstacles,
+                                        (writer, key) => writer.setUint8(key),
+                                        (writer, value) => writer.setUint16(value)
+                                    ),
+                                    writer.setMap(value.pillars,
+                                        (writer, key) => writer.setUint8(key),
+                                        (writer, value) => writer.setUint16(value)
+                                    )
+                                }
+                            )
+                        }
+                    )
+                } else if (skillName == "Magic") {
+                    writer.setBoolean(value.skillSpecific.spell != undefined);
+                    if (value.skillSpecific.spell != undefined)
+                        writer.setUint16(value.skillSpecific.spell);
+                    writer.setBoolean(value.skillSpecific.conversionItem != undefined);
+                    if (value.skillSpecific.conversionItem != undefined)
+                        writer.setUint16(value.skillSpecific.conversionItem);
+                    writer.setBoolean(value.skillSpecific.selectedRecipe != undefined);
+                    if (value.skillSpecific.selectedRecipe != undefined)
+                        writer.setUint16(value.skillSpecific.selectedRecipe);
+                } else if (skillName == "Astrology") {
+                    writer.setBoolean(value.skillSpecific.studied != undefined);
+                    if (value.skillSpecific.studied != undefined)
+                        writer.setUint16(value.skillSpecific.studied);
+                    writer.setBoolean(value.skillSpecific.explored != undefined);
+                    if (value.skillSpecific.explored != undefined)
+                        writer.setUint16(value.skillSpecific.explored);
+                    writer.setArray(value.skillSpecific.actions,
+                        (writer, value) => {
+                            writer.setUint16(value.recipie),
+                            writer.setArray(value.standardModsBought, (writer, value) => writer.setUint8(value)),
+                            writer.setArray(value.uniqueModsBought, (writer, value) => writer.setUint8(value)),
+                            writer.setArray(value.abyssalModsBought, (writer, value) => writer.setUint8(value))
+                        }
+                    ),
+                    writer.setArray(value.skillSpecific.dummyRecipies,
+                        (writer, value) => {
+                            writer.setUint16(value.recipie),
+                            writer.setArray(value.standardModsBought, (writer, value) => writer.setUint8(value)),
+                            writer.setArray(value.uniqueModsBought, (writer, value) => writer.setUint8(value)),
+                            writer.setArray(value.abyssalModsBought, (writer, value) => writer.setUint8(value))
+                        }
+                    )
+                } else if (skillName == "Cartography") {
+                    writer.setMap(value.skillSpecific.worldMaps,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setMap(value.worldMap,
+                                (writer, key) => writer.setInt16(key),
+                                (writer, value) => writer.setMap(value,
+                                    (writer, key) => writer.setInt16(key),
+                                    (writer, value) => writer.setFloat64(value)
+                                )
+                        
+                            );
+                            writer.setInt16(value.position[0]);
+                            writer.setInt16(value.position[1]);
+                            writer.setArray(value.filterSettings.markerSettings, (writer, value) => writer.setBoolean(value));
+                            writer.setArray(value.filterSettings.hiddenFastTravelGroups, (writer, value) => writer.setUint16(value));
+                            writer.setMap(value.pois,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => {
+                                        writer.setBoolean(value.discovered);
+                                        writer.setUint8(value.fastTravelUnlocked);
+                                        writer.setUint8(value.discoveryMovesLeft);
+                                        writer.setUint16(value.surveyOrder);
+                                }
+                            ),
+                            writer.setMap(value.bonus,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => writer.setBoolean(value)
+                            )
+                        }
+                    );
+                    writer.setBoolean(value.active);
+                    writer.setUint8(value.skillSpecific.actionMode);
+                    writer.setUint32(value.timer.ticksLeft);
+                    writer.setUint32(value.timer.maxTicks);
+                    writer.setBoolean(value.timer.active);
+                    writer.setBoolean(value.skillSpecific.map != undefined);
+                    if (value.skillSpecific.map != undefined) {
+                        writer.setUint16(value.skillSpecific.map.activeMap);
+                        writer.setArray(value.skillSpecific.map.surveyQueue, 
+                            (writer, value) => {
+                                writer.setInt16(value[0]);
+                                writer.setInt16(value[1])
+                            }
+                        );
+                        writer.setBoolean(value.skillSpecific.map.autoSurvey != undefined)
+                        if (value.skillSpecific.map.autoSurvey != undefined) {
+                            writer.setInt16(value.skillSpecific.map.autoSurvey[0]);
+                            writer.setInt16(value.skillSpecific.map.autoSurvey[1]);
+                        }
+                    }
+                    writer.setBoolean(value.skillSpecific.event != undefined);
+                    if (value.skillSpecific.event != undefined)
+                        writer.setUint16(value.skillSpecific.event);
+                    writer.setBoolean(value.skillSpecific.paperRecipe != undefined);
+                    if (value.skillSpecific.paperRecipe != undefined)
+                        writer.setUint16(value.skillSpecific.paperRecipe);
+                    writer.setBoolean(value.skillSpecific.digSite != undefined);
+                    if (value.skillSpecific.digSite != undefined)
+                        writer.setUint16(value.skillSpecific.digSite);
+                } else if (skillName == "Cooking") {
+                    writer.setMap(value.skillSpecific.selectedRecipies,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint16(value)
+                    );
+                    writer.setMap(value.skillSpecific.passiveCookTimers,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setUint32(value.ticksLeft);
+                            writer.setUint32(value.maxTicks);
+                            writer.setBoolean(value.active);
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.stockpileItems,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setUint16(value.item);
+                            writer.setInt32(value.qty);
+                        }
+                    );
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.activeCategory);
+                } else if (skillName == "Farming") {
+                    writer.setMap(value.skillSpecific.plots,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setUint8(value.state),
+                            writer.setBoolean(value.planted != undefined)
+                            if (value.planted != undefined)
+                                writer.setUint16(value.planted);
+                            writer.setBoolean(value.compost != undefined)
+                            if (value.compost != undefined)
+                                writer.setUint16(value.compost);
+                            writer.setUint8(value.compostLevel),
+                            writer.setBoolean(value.selected != undefined)
+                            if (value.selected != undefined)
+                                writer.setUint16(value.selected);
+                            writer.setFloat64(value.growthTime);
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.dummyPlots,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setUint8(value.state),
+                            writer.setBoolean(value.planted != undefined)
+                            if (value.planted != undefined)
+                                writer.setUint16(value.planted);
+                            writer.setBoolean(value.compost != undefined)
+                            if (value.compost != undefined)
+                                writer.setUint16(value.compost);
+                            writer.setUint8(value.compostLevel),
+                            writer.setBoolean(value.selected != undefined)
+                            if (value.selected != undefined)
+                                writer.setUint16(value.selected);
+                            writer.setFloat64(value.growthTime);
+                        }
+                    );
+                    writer.setArray(value.skillSpecific.growthTimers,
+                        (writer, value) => {
+                            writer.setUint32(value.ticksLeft);
+                            writer.setUint32(value.maxTicks);
+                            writer.setBoolean(value.active);
+                        }
+                    );
+                } else if (skillName == "Firemaking") {
+                    writer.setUint32(value.skillSpecific.bonfireTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.bonfireTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.bonfireTimer.active);
+                    writer.setBoolean(value.skillSpecific.recipe != undefined);
+                    if (value.skillSpecific.recipe != undefined)
+                        writer.setUint16(value.skillSpecific.recipe);
+                    writer.setBoolean(value.skillSpecific.bonfireRecipe != undefined);
+                    if (value.skillSpecific.bonfireRecipe != undefined)
+                        writer.setUint16(value.skillSpecific.bonfireRecipe);
+                    writer.setUint32(value.skillSpecific.oilTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.oilTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.oilTimer.active);
+                    writer.setBoolean(value.skillSpecific.oiledLogRecipe != undefined);
+                    if (value.skillSpecific.oiledLogRecipe != undefined)
+                        writer.setUint16(value.skillSpecific.oiledLogRecipe);
+                    writer.setBoolean(value.skillSpecific.oilRecipe != undefined);
+                    if (value.skillSpecific.oilRecipe != undefined)
+                        writer.setUint16(value.skillSpecific.oilRecipe);
+                } else if (skillName == "Fishing") {
+                    writer.setBoolean(value.skillSpecific.secretAreaUnlocked);
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.area);
+                    writer.setMap(value.skillSpecific.selectedAreaFish,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint16(value)
+                    );
+                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(value));
+                    writer.setBoolean(value.skillSpecific.contest != undefined);
+                    if (value.skillSpecific.contest != undefined) {
+                        writer.setArray(value.skillSpecific.contest.completion, (writer, value) => writer.setBoolean(value));
+                        writer.setArray(value.skillSpecific.contest.mastery, (writer, value) => writer.setBoolean(value));
+                    }
+                } else if (skillName == "Fletching") {
+                    writer.setBoolean(value.skillSpecific.recipe != undefined);
+                    if (value.skillSpecific.recipe != undefined)
+                        writer.setUint16(value.skillSpecific.recipe);
+                    writer.setMap(value.skillSpecific.altRecipies,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint16(value)
+                    )
+                } else if (skillName == "Summoning") {
+                    writer.setBoolean(value.skillSpecific.recipe != undefined);
+                    if (value.skillSpecific.recipe != undefined)
+                        writer.setUint16(value.skillSpecific.recipe);
+                    writer.setMap(value.skillSpecific.selectedNonShardCosts,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint16(value)
+                    );
+                    writer.setMap(value.skillSpecific.marksUnlocked,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setUint8(value)
+                    );
+                } else if (skillName == "Thieving") {
+                    writer.setUint32(value.skillSpecific.stunTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.stunTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.stunTimer.active);
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.area);
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.npc);
+                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(value));
+                    writer.setUint8(value.skillSpecific.stunState);
+                } else if (skillName == "Township") {
+                    writer.setUint16(value.skillSpecific.townData.worship);
+                    writer.setBoolean(value.skillSpecific.townData.created);
+                    writer.setInt16(value.skillSpecific.townData.seasonTicksRemaining);
+                    writer.setBoolean(value.skillSpecific.townData.season != undefined);
+                    if (value.skillSpecific.townData.season != undefined)
+                        writer.setUint16(value.skillSpecific.townData.season);
+                    writer.setBoolean(value.skillSpecific.townData.previousSeason != undefined);
+                    if (value.skillSpecific.townData.previousSeason != undefined)
+                        writer.setUint16(value.skillSpecific.townData.previousSeason);
+                    writer.setInt8(value.skillSpecific.townData.health);
+                    writer.setInt32(value.skillSpecific.townData.souls);
+                    writer.setInt16(value.skillSpecific.townData.abyssalWaveTicksRemaining);
+                    writer.setMap(value.skillSpecific.resources,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setFloat64(value.qty);
+                            writer.setUint8(value.cap);
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.dummyResources,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setFloat64(value.qty);
+                            writer.setUint8(value.cap);
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.biomes,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setMap(value.buildingsBuilt,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => writer.setUint32(value)
+                            );
+                            writer.setMap(value.buildingEfficiency,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => writer.setUint32(value)
+                            );
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.dummyBiomes,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setMap(value.buildingsBuilt,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => writer.setUint32(value)
+                            );
+                            writer.setMap(value.buildingEfficiency,
+                                (writer, key) => writer.setUint16(key),
+                                (writer, value) => writer.setUint32(value)
+                            );
+                        }
+                    );
+                    writer.setUint32(value.skillSpecific.legacyTicks);
+                    writer.setUint32(value.skillSpecific.totalTicks);
+                    writer.setArray(value.skillSpecific.tasksCompleted, (writer, value) => writer.setUint16(value));
+                    writer.setBoolean(value.skillSpecific.townshipConverted);
+                    writer.setUint32(value.skillSpecific.casualTasks.completed);
+                    writer.setMap(value.skillSpecific.casualTasks.currentCasualTasks,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setArray(value, (writer, value) => writer.setFloat64(value))
+                    );
+                    writer.setUint32(value.skillSpecific.casualTasks.newTaskTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.casualTasks.newTaskTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.casualTasks.newTaskTimer.active);
+                    writer.setUint32(value.skillSpecific.tickTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.tickTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.tickTimer.active);
+                    writer.setBoolean(value.skillSpecific.displayReworkNotification);
+                    writer.setFloat64(value.skillSpecific.gpRefunded);
+                    writer.setUint32(value.skillSpecific.abyssalWaveTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.abyssalWaveTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.abyssalWaveTimer.active);
+                } else if (skillName == "Woodcutting") {
+                    writer.setArray(value.skillSpecific.activeTrees, (writer, value) => writer.setUint16(value));
+                } else if (skillName == "Mining") {
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.selectedRock);
+                    writer.setMap(value.skillSpecific.rocks,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                                writer.setBoolean(value.isRespawning);
+                                writer.setUint32(value.currentHP);
+                                writer.setUint32(value.maxHP);
+                        }
+                    );
+                    writer.setMap(value.skillSpecific.rockRespawnTimers,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                                writer.setUint32(value.ticksLeft);
+                                writer.setUint32(value.maxTicks);
+                                writer.setBoolean(value.active);
+                        }
+                    );
+                    writer.setUint32(value.skillSpecific.passiveRegenTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.passiveRegenTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.passiveRegenTimer.active);
+                } else if (skillName == "Corruption") {
+                    writer.setMap(value.skillSpecific.corruptionEffects,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => writer.setBoolean(value)
+                    );
+                    writer.setArray(value.skillSpecific.corruptionUnlockedRows, (writer, value) => writer.setUint16(value));
+                } else if (skillName == "Harvesting") {
+                    if (value.active)
+                        writer.setUint16(value.skillSpecific.selectedVein);
+                    writer.setMap(value.skillSpecific.veins,
+                        (writer, key) => writer.setUint16(key),
+                        (writer, value) => {
+                            writer.setUint32(value.currentIntensity);
+                            writer.setUint32(value.maxIntensity);
+                        }
+                    );
+                    writer.setUint32(value.skillSpecific.veinDecayTimer.ticksLeft);
+                    writer.setUint32(value.skillSpecific.veinDecayTimer.maxTicks);
+                    writer.setBoolean(value.skillSpecific.veinDecayTimer.active);
+                } 
+            }
+            writer.dataView.setUint32(skillSizeLocation, writer.offset - skillSizeLocation - 4);
+        }
+    );
+    writer.setMap(save.mods,
+        (writer, key) => writer.setUint32(key),
+        (writer, value) => {
+            writer.setString(value.settings),
+            writer.setString(value.storage)
+        }
+    );
+    writer.setString(save.completion.completion);
+    writer.setMap(save.settings.keyBindings,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setArray(value,
+            (writer, value) => {
+                writer.setBoolean(true)
+                writer.setString(value.key);
+                writer.setBoolean(value.alt);
+                writer.setBoolean(value.ctrl);
+                writer.setBoolean(value.meta);
+                writer.setBoolean(value.shift);
+            }
+        )
+    );
+    writer.setArray(save.completion.birthdayCompletions, (writer, value) => writer.setBoolean(value));
+    writer.setInt8(save.completion.clueHuntStep);
+    
+    writer.setMap(save.currencies,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+            writer.setFloat64(value.qty),
+            writer.setMap(value.stats,
+                (writer, key) => writer.setUint32(key),
+                (writer, value) => writer.setFloat64(value)
+            ),
+            writer.setMap(value.currencySkills,
+                (writer, key) => writer.setUint16(key),
+                (writer, value) => writer.setMap(value,
+                    (writer, key) => writer.setUint32(key),
+                    (writer, value) => writer.setFloat64(value)
+                )
+            )
+        }
+    )
+    writer.setMap(save.completion.areaCompletions,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
+    writer.setMap(save.completion.strongholdCompletions,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => writer.setUint32(value)
+    );
+    writer.setMap(save.levelCapIncreases.increases,
+        (writer, key) => writer.setUint16(key),
+        (writer, value) => {
+            writer.setArray(value.given, (writer,value) => writer.setUint16(value));
+            writer.setArray(value.increases, (writer, value) => writer.setUint16(value))
+        }
+    );
+    writer.setArray(save.levelCapIncreases.selected, (writer, value) => writer.setUint16(value));
+    writer.setUint16(save.levelCapIncreases.bought);
+    writer.setUint16(save.levelCapIncreases.abyssalBought);
+    writer.setUint16(save.realm);
+    writer.dataView.setUint32(bodySizeLocation, writer.offset - bodySizeLocation - 4);
     return writer.generateSaveString();
 }

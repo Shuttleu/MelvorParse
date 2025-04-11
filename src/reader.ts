@@ -2,14 +2,12 @@ import { unzlibSync, strToU8 } from 'fflate';
 import { saveData } from "./type"
 
 class Reader {
-    saveString: string;
     parsedString: ArrayBuffer;
     dataView: DataView;
     offset = 0;
 
     constructor (saveString: string) {
-        this.saveString = saveString;
-        this.parsedString = unzlibSync(strToU8(atob(this.saveString), true)).buffer;
+        this.parsedString = unzlibSync(strToU8(atob(saveString), true)).buffer;
         this.dataView = new DataView(this.parsedString);
     }
 
