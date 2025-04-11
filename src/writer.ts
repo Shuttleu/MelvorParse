@@ -1,5 +1,6 @@
 import { zlibSync, strFromU8 } from 'fflate';
 import { saveData } from './type';
+import { findItemFromNamespace } from './reader';
 
 export class Writer {
     data: ArrayBuffer;
@@ -119,21 +120,7 @@ export class Writer {
 }
 
 export function parseSave(save: saveData, initialSize: number): string {
-    const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
-        
-    function findItemFromNamespace(item: number) {
-        for (var i = 0; i < knownNamespaces.length; i++){
-            const value = save.header.namespaces.get(knownNamespaces[i]);
-            var result:string | undefined = undefined;
-            if (value != undefined)
-                value.forEach((v: number, k: string) => {
-                    if (v == item)
-                        result = k;
-                });
-            if (result != undefined) return result;
-        }
-        return "Unknown";
-    }
+
 
     var writer = new Writer(initialSize);
     writer.setStaticString("melvor");
@@ -951,7 +938,7 @@ export function parseSave(save: saveData, initialSize: number): string {
             );
             writer.setFloat64(value.abyssalXP);
             writer.setUint16(value.realm);
-            const skillName = findItemFromNamespace(k);
+            const skillName = findItemFromNamespace(k, save.header.namespaces);
             if (!["Attack", "Strength", "Defence", "Hitpoints", "Ranged", "Prayer", "Slayer"].includes(skillName)) {
                 if (!["Township", "Corruption", "Cartography"].includes(skillName)) {
                     writer.setMap(value.mastery.actionMastery,

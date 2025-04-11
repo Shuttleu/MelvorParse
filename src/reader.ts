@@ -107,7 +107,23 @@ class Reader {
     }
 }
 
-export function parseString(string: string): {saveData: saveData, initialSize: number} {
+        
+export function findItemFromNamespace(item: number, namespaces: Map<string, Map<string, number>>) {
+    const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
+    for (var i = 0; i < knownNamespaces.length; i++){
+        const value = namespaces.get(knownNamespaces[i]);
+        var result:string | undefined = undefined;
+        if (value)
+            value.forEach((v: number, k: string) => {
+                if (v == item)
+                    result = k;
+            });
+        if (result != undefined) return result;
+    }
+    return "Unknown";
+}
+
+export function parseString(string: string): {saveData: saveData, initialSize: number} | undefined {
     try {
         var reader = new Reader(string);
 
@@ -115,20 +131,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
 
         if (staticString != "melvor") throw new Error("Not a Melvor Idle save string");
         
-        const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
-        
-        function findItemFromNamespace(item: number) {
-            for (var i = 0; i < knownNamespaces.length; i++){
-                const value = headerNamespaces.get(knownNamespaces[i]);
-                var result:string | undefined = undefined;
-                value.forEach((v: number, k: string) => {
-                    if (v == item)
-                        result = k;
-                });
-                if (result != undefined) return result;
-            }
-            return "Unknown";
-        }
+
         
         reader.getUint32();
         const headerNamespaces = reader.getMap(
@@ -858,7 +861,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             }
             var remaining = endOffset - reader.offset;
             if (remaining > 0) {
-                const skillName = findItemFromNamespace(k);
+                const skillName = findItemFromNamespace(k, headerNamespaces);
                 if (!["Township", "Corruption", "Cartography"].includes(skillName)) {
                     // @ts-ignore
                     skill.mastery = {
@@ -1864,9 +1867,6 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             initialSize: reader.dataView.byteLength
         };
     } catch (e: any) {
-        if (!(e instanceof Error)) {
-            e = new Error(e);
-        }
-        return e.message;
+        return undefined;
     }
 }

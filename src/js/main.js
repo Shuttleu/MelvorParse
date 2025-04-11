@@ -2,4 +2,4 @@
 import '../scss/styles.scss'
 
 // Import all of Bootstrap's JS
-import { Collapse } from 'bootstrap'
+//import { Collapse } from 'bootstrap'
