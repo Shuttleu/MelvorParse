@@ -1,6 +1,5 @@
 import { zlibSync, strFromU8 } from 'fflate';
 import { saveData } from './type';
-import { findItemFromNamespace } from './reader';
 
 export class Writer {
     data: ArrayBuffer;
@@ -108,12 +107,12 @@ export class Writer {
         })
     }
 
-    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any) => void, setValue: (writer: Writer, value: any, key: number) => void) {
+    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any) => void, setValue: (writer: Writer, value: any, key: string) => void) {
         const mapSize = map.size;
         this.setUint32(mapSize);
         map.forEach((value, key) => {
             setKey(this, key);
-            const tempKey = typeof key === "number" ? key : 0
+            const tempKey = typeof key === "string" ? key : ""
             setValue(this, value, tempKey);
         })
     }
@@ -938,9 +937,9 @@ export function parseSave(save: saveData, initialSize: number): string {
             );
             writer.setFloat64(value.abyssalXP);
             writer.setUint16(value.realm);
-            const skillName = findItemFromNamespace(k, save.header.namespaces);
-            if (!["Attack", "Strength", "Defence", "Hitpoints", "Ranged", "Prayer", "Slayer"].includes(skillName)) {
-                if (!["Township", "Corruption", "Cartography"].includes(skillName)) {
+            const skillName = k;
+            if (!["melvorD:Attack", "melvorD:Strength", "melvorD:Defence", "melvorD:Hitpoints", "melvorD:Ranged", "melvorD:Prayer", "melvorD:Slayer"].includes(skillName)) {
+                if (!["melvorD:Township", "melvorItA:Corruption", "melvorAoD:Cartography"].includes(skillName)) {
                     writer.setMap(value.mastery.actionMastery,
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setFloat64(value)    
@@ -949,18 +948,18 @@ export function parseSave(save: saveData, initialSize: number): string {
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setFloat64(value)    
                     );
-                    if (skillName != "Farming") {
+                    if (skillName != "melvorD:Farming") {
                         writer.setBoolean(value.active);
                         writer.setUint32(value.timer.ticksLeft);
                         writer.setUint32(value.timer.maxTicks);
                         writer.setBoolean(value.timer.active);
                     }
                 }
-                if (["Herblore", "Crafting", "Runecrafting", "Smithing"].includes(skillName)) {
+                if (["melvorD:Herblore", "melvorD:Crafting", "melvorD:Runecrafting", "melvorD:Smithing"].includes(skillName)) {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
                         writer.setUint16(value.skillSpecific.recipe);
-                } else if (skillName == "Archaeology") {
+                } else if (skillName == "melvorAoD:Archaeology") {
                     writer.setBoolean(value.skillSpecific.digsite != undefined);
                     if (value.skillSpecific.digsite != undefined)
                         writer.setUint16(value.skillSpecific.digsite);
@@ -1001,7 +1000,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     );
                     writer.setArray(value.skillSpecific.museum.donated, (writer, value) => writer.setUint16(value));
                     writer.setArray(value.skillSpecific.hiddenDigsites, (writer, value) => writer.setUint16(value));
-                } else if (skillName == "Agility") {
+                } else if (skillName == "melvorD:Agility") {
                     writer.setInt16(value.skillSpecific.activeObstacle),
                     writer.setMap(value.skillSpecific.obstacleBuildCount,
                         (writer, key) => writer.setUint16(key),
@@ -1034,7 +1033,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                             )
                         }
                     )
-                } else if (skillName == "Magic") {
+                } else if (skillName == "melvorD:Magic") {
                     writer.setBoolean(value.skillSpecific.spell != undefined);
                     if (value.skillSpecific.spell != undefined)
                         writer.setUint16(value.skillSpecific.spell);
@@ -1044,7 +1043,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.selectedRecipe != undefined);
                     if (value.skillSpecific.selectedRecipe != undefined)
                         writer.setUint16(value.skillSpecific.selectedRecipe);
-                } else if (skillName == "Astrology") {
+                } else if (skillName == "melvorD:Astrology") {
                     writer.setBoolean(value.skillSpecific.studied != undefined);
                     if (value.skillSpecific.studied != undefined)
                         writer.setUint16(value.skillSpecific.studied);
@@ -1067,7 +1066,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                             writer.setArray(value.abyssalModsBought, (writer, value) => writer.setUint8(value))
                         }
                     )
-                } else if (skillName == "Cartography") {
+                } else if (skillName == "melvorAoD:Cartography") {
                     writer.setMap(value.skillSpecific.worldMaps,
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => {
@@ -1127,7 +1126,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.digSite != undefined);
                     if (value.skillSpecific.digSite != undefined)
                         writer.setUint16(value.skillSpecific.digSite);
-                } else if (skillName == "Cooking") {
+                } else if (skillName == "melvorD:Cooking") {
                     writer.setMap(value.skillSpecific.selectedRecipies,
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setUint16(value)
@@ -1149,7 +1148,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     );
                     if (value.active)
                         writer.setUint16(value.skillSpecific.activeCategory);
-                } else if (skillName == "Farming") {
+                } else if (skillName == "melvorD:Farming") {
                     writer.setMap(value.skillSpecific.plots,
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => {
@@ -1191,7 +1190,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                             writer.setBoolean(value.active);
                         }
                     );
-                } else if (skillName == "Firemaking") {
+                } else if (skillName == "melvorD:Firemaking") {
                     writer.setUint32(value.skillSpecific.bonfireTimer.ticksLeft);
                     writer.setUint32(value.skillSpecific.bonfireTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.bonfireTimer.active);
@@ -1210,7 +1209,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.oilRecipe != undefined);
                     if (value.skillSpecific.oilRecipe != undefined)
                         writer.setUint16(value.skillSpecific.oilRecipe);
-                } else if (skillName == "Fishing") {
+                } else if (skillName == "melvorD:Fishing") {
                     writer.setBoolean(value.skillSpecific.secretAreaUnlocked);
                     if (value.active)
                         writer.setUint16(value.skillSpecific.area);
@@ -1224,7 +1223,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                         writer.setArray(value.skillSpecific.contest.completion, (writer, value) => writer.setBoolean(value));
                         writer.setArray(value.skillSpecific.contest.mastery, (writer, value) => writer.setBoolean(value));
                     }
-                } else if (skillName == "Fletching") {
+                } else if (skillName == "melvorD:Fletching") {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
                         writer.setUint16(value.skillSpecific.recipe);
@@ -1232,7 +1231,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setUint16(value)
                     )
-                } else if (skillName == "Summoning") {
+                } else if (skillName == "melvorD:Summoning") {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
                         writer.setUint16(value.skillSpecific.recipe);
@@ -1244,7 +1243,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setUint8(value)
                     );
-                } else if (skillName == "Thieving") {
+                } else if (skillName == "melvorD:Thieving") {
                     writer.setUint32(value.skillSpecific.stunTimer.ticksLeft);
                     writer.setUint32(value.skillSpecific.stunTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.stunTimer.active);
@@ -1254,7 +1253,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                         writer.setUint16(value.skillSpecific.npc);
                     writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(value));
                     writer.setUint8(value.skillSpecific.stunState);
-                } else if (skillName == "Township") {
+                } else if (skillName == "melvorD:Township") {
                     writer.setUint16(value.skillSpecific.townData.worship);
                     writer.setBoolean(value.skillSpecific.townData.created);
                     writer.setInt16(value.skillSpecific.townData.seasonTicksRemaining);
@@ -1327,9 +1326,9 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setUint32(value.skillSpecific.abyssalWaveTimer.ticksLeft);
                     writer.setUint32(value.skillSpecific.abyssalWaveTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.abyssalWaveTimer.active);
-                } else if (skillName == "Woodcutting") {
+                } else if (skillName == "melvorD:Woodcutting") {
                     writer.setArray(value.skillSpecific.activeTrees, (writer, value) => writer.setUint16(value));
-                } else if (skillName == "Mining") {
+                } else if (skillName == "melvorD:Mining") {
                     if (value.active)
                         writer.setUint16(value.skillSpecific.selectedRock);
                     writer.setMap(value.skillSpecific.rocks,
@@ -1351,13 +1350,13 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setUint32(value.skillSpecific.passiveRegenTimer.ticksLeft);
                     writer.setUint32(value.skillSpecific.passiveRegenTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.passiveRegenTimer.active);
-                } else if (skillName == "Corruption") {
+                } else if (skillName == "melvorItA:Corruption") {
                     writer.setMap(value.skillSpecific.corruptionEffects,
                         (writer, key) => writer.setUint16(key),
                         (writer, value) => writer.setBoolean(value)
                     );
                     writer.setArray(value.skillSpecific.corruptionUnlockedRows, (writer, value) => writer.setUint16(value));
-                } else if (skillName == "Harvesting") {
+                } else if (skillName == "melvorItA:Harvesting") {
                     if (value.active)
                         writer.setUint16(value.skillSpecific.selectedVein);
                     writer.setMap(value.skillSpecific.veins,

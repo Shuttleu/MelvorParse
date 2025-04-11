@@ -7,7 +7,7 @@ type character = {
     hp: number,
     nextAction: number,
     attackCount: number,
-    nextAttack: number,
+    nextAttack: string,
     isAttacking: boolean,
     firstHit: boolean,
     actionTimer: timer,
@@ -360,24 +360,24 @@ export type saveData = {
     },
     tickTime: number,
     saveTime: number,
-    activeAction: number | undefined,
-    pausedAction: number | undefined,
+    activeAction: string | undefined,
+    pausedAction: string | undefined,
     paused: boolean,
     merchantsPermitRead: boolean,
-    gameMode: number,
+    gameMode: string,
     characterName: string,
     bank: bank,
     combat: {
         player: {
             character: character,
-            meleeType: number | undefined,
-            rangedType: number | undefined,
-            magicType: number | undefined,
+            meleeType: string | undefined,
+            rangedType: string | undefined,
+            magicType: string | undefined,
             prayerPoints: number,
             equipmentSet: number,
             equipmentSets: Array<equipmentSet>,
             foodSlot: number,
-            foodSlots: Array<number>,
+            foodSlots: Map<string, number>,
             maxFoodSlot: number,
             summoningTimer: timer,
             soulPoints: number,
@@ -387,8 +387,8 @@ export type saveData = {
             character: character,
             state: number,
             attackType: number,
-            enemy: number | undefined,
-            damageType: number | undefined
+            enemy: string | undefined,
+            damageType: string | undefined
         },
         fightInProgress: boolean,
         fightTimer: timer,
@@ -396,24 +396,24 @@ export type saveData = {
         combatPassives: Map<number, boolean>,
         combatArea: {
             area: number,
-            subArea: number
+            subArea: string
         } | undefined,
         combatAreaProgress: number,
-        monster: number | undefined,
+        monster: string | undefined,
         combatPaused: boolean,
         loot: Map<number, number>,
         slayer: {
             taskActive: boolean,
-            task: number | undefined,
+            task: string | undefined,
             left: number,
             extended: boolean,
-            category: number | undefined,
+            category: string | undefined,
             categories: Map<number, number>,
             timer: timer,
-            realm: number
+            realm: string
         },
         event: {
-            active: number | undefined,
+            active: string | undefined,
             passives: Array<number>,
             passivesSelected: Array<number>,
             dungeonLength: number,
@@ -426,14 +426,14 @@ export type saveData = {
     goblinRaid: {
         player: {
             character: character,
-            meleeType: number | undefined,
-            rangedType: number | undefined,
-            magicType: number | undefined,
+            meleeType: string | undefined,
+            rangedType: string | undefined,
+            magicType: string | undefined,
             prayerPoints: number,
             equipmentSet: number,
             equipmentSets: Array<equipmentSet>,
             foodSlot: number,
-            foodSlots: Array<number>,
+            foodSlots: Map<string, number>,
             maxFoodSlot: number,
             summoningTimer: timer,
             soulPoints: number,
@@ -444,7 +444,7 @@ export type saveData = {
             character: character,
             state: number,
             attackType: number,
-            enemy: number | undefined,
+            enemy: string | undefined,
             goblin: goblin | undefined
         },
         inProgress: boolean,
@@ -656,5 +656,5 @@ export type saveData = {
         bought: number,
         abyssalBought: number,
     },
-    realm: number
+    realm: string
 }

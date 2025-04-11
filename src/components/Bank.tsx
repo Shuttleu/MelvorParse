@@ -1,7 +1,6 @@
 import { Col, Nav, NavLink, Row } from "react-bootstrap";
 import { saveData } from "../type"
 import { useState } from "react";
-import { findItemFromNamespace } from "../reader";
 
 type saveProps = {
     save: saveData;
@@ -12,7 +11,7 @@ function Tabs(props: saveProps) {
     const processTab = (tab: Map<number, number>) => {
         var items: Array<string> = [];
         tab.forEach((qty, item) => {
-            items.push(findItemFromNamespace(item, props.save.header.namespaces) + ": " + qty.toLocaleString())
+            items.push(item + ": " + qty.toLocaleString())
         })
         return items;
     }
@@ -39,7 +38,7 @@ function DefaultTabs(props: saveProps) {
     const processTab = (tab: Map<number, number>) => {
         var items: Array<string> = [];
         tab.forEach((qty, item) => {
-            items.push(findItemFromNamespace(item, props.save.header.namespaces) + ": " + qty.toLocaleString())
+            items.push(item + ": " + qty.toLocaleString())
         })
         return items;
     }
