@@ -1,15 +1,22 @@
 import { unzlibSync, strToU8 } from 'fflate';
+import { saveData } from "./type"
 
 class Reader {
-    saveString: string;
     parsedString: ArrayBuffer;
     dataView: DataView;
-    offset = 6;
+    offset = 0;
 
     constructor (saveString: string) {
-        this.saveString = saveString;
-        this.parsedString = unzlibSync(strToU8(atob(this.saveString), true)).buffer;
+        this.parsedString = unzlibSync(strToU8(atob(saveString), true)).buffer;
         this.dataView = new DataView(this.parsedString);
+    }
+
+    getStaticString(length: number) {
+            const decoder = new TextDecoder()
+            const encodedString = this.parsedString.slice(this.offset, this.offset + length);
+            const string = decoder.decode(encodedString);
+            this.offset += length;
+        return string;
     }
 
     getString() {
@@ -69,8 +76,8 @@ class Reader {
         return buffer;
     }
 
-    getArray(value: (reader: Reader) => {} | undefined) {
-        var result = [];
+    getArray(value: (reader: Reader) => any) {
+        var result: Array<any> = [];
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
             result.push(value(this))
@@ -78,7 +85,7 @@ class Reader {
         return result;
     }
 
-    getSet(value: (reader: Reader) => {}) {
+    getSet(value: (reader: Reader) => any): Set<any> {
         var result = new Set();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
@@ -87,28 +94,33 @@ class Reader {
         return result;
     }
 
-    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number | string) => {}) {
+    getMap(key: (reader: Reader) => number | string, value: (reader: Reader, key: number) => any) {
         var result = new Map();
         const arraySize = this.getUint32();
         for (var i = 0; i < arraySize; i++) {
-            var setKey = key(this);
-            var setValue = value(this, setKey);
+            const setKey = key(this);
+            const tempKey = typeof setKey === "number" ? setKey : 0
+            const setValue = value(this, tempKey);
             result.set(setKey, setValue);
         }
         return result;
     }
 }
 
-export function parseString(string: string): any {
+export function parseString(string: string): {saveData: saveData, initialSize: number} {
     try {
         var reader = new Reader(string);
+
+        const staticString = reader.getStaticString(6);
+
+        if (staticString != "melvor") throw new Error("Not a Melvor Idle save string");
         
         const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
         
-        function findItemFromNamespace(item: number | string) {
+        function findItemFromNamespace(item: number) {
             for (var i = 0; i < knownNamespaces.length; i++){
                 const value = headerNamespaces.get(knownNamespaces[i]);
-                var result = undefined;
+                var result:string | undefined = undefined;
                 value.forEach((v: number, k: string) => {
                     if (v == item)
                         result = k;
@@ -138,12 +150,12 @@ export function parseString(string: string): any {
         const headerActiveTrainingName = reader.getString();
         const headerTickTime = reader.getFloat64();
         const headerSaveTime = reader.getFloat64();
-        const headerActiveNamespaces = reader.getArray((reader) => reader.getString());
+        const headerActiveNamespaces = reader.getSet((reader) => reader.getString());
         
         const headerMods = reader.getBoolean() ? {
             profileId: reader.getString(),
             profileName: reader.getString(),
-            mods: reader.getArray((reader) => reader.getUint32())
+            mods: reader.getSet((reader) => reader.getUint32())
         } : undefined
         reader.getUint32();
         const tickTime = reader.getFloat64();
@@ -228,8 +240,8 @@ export function parseString(string: string): any {
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = 0;
-                    var qty = 0;
+                    var stackable: number | undefined = undefined;
+                    var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
@@ -252,7 +264,7 @@ export function parseString(string: string): any {
         });
         const selectedFoodSlot = reader.getUint32();
         const maxFoodSlot = reader.getUint32();
-        const foodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+        const foodSlots = reader.getArray((reader) => [reader.getUint16(), reader.getUint32()]);
         const summonTicksLeft = reader.getUint32();
         const summonMaxTicks = reader.getUint32();
         const summonActive = reader.getBoolean();
@@ -397,8 +409,8 @@ export function parseString(string: string): any {
             return {
                 equipment: reader.getArray((reader) => {
                     const id = reader.getUint16();
-                    var stackable = 0;
-                    var qty = 0;
+                    var stackable: number | undefined = undefined;
+                    var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
                         stackable = reader.getUint16();
                         qty = reader.getUint32();
@@ -421,7 +433,7 @@ export function parseString(string: string): any {
         });
         const raidselectedFoodSlot = reader.getUint32();
         const raidmaxFoodSlot = reader.getUint32();
-        const raidfoodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+        const raidfoodSlots = reader.getArray((reader) => [reader.getUint16(), reader.getUint32()]);
         
         const raidsummonTicksLeft = reader.getUint32();
         const raidsummonMaxTicks = reader.getUint32();
@@ -633,7 +645,7 @@ export function parseString(string: string): any {
         
         
         // Start Potions
-        const potionList = reader.getMap((reader) => reader.getUint16(), (reader) => [reader.getUint16(), reader.getUint32()]);
+        const potionList = reader.getMap((reader) => reader.getUint16(), (reader) => { return {item: reader.getUint16(), charges: reader.getUint32()}});
         const potionReuse = reader.getArray((reader) => reader.getUint16());
         // End Potions
         
@@ -1362,6 +1374,8 @@ export function parseString(string: string): any {
                             meta: reader.getBoolean(),
                             shift: reader.getBoolean()
                         }
+                    } else {
+                        return undefined;
                     }
                 }
             )
@@ -1413,440 +1427,446 @@ export function parseString(string: string): any {
         const realm = reader.getUint16();
         
         return {
-            header: {
-                saveVersion: headerSaveVersion,
-                saveName: headerSaveName,
-                gameMode: headerGameMode,
-                skillLevel: headerSkillLevel,
-                gp: headerGp,
-                activeTraining: headerActiveTraining,
-                activeTrainingName: headerActiveTrainingName,
-                tickTime: headerTickTime,
-                saveTime: headerSaveTime,
-                activeNamespaces: headerActiveNamespaces,
-                mods: headerMods,
-                namespaces: headerNamespaces
-            },
-            tickTime: tickTime,
-            saveTime: saveTime,
-            activeAction: activeAction,
-            pausedAction: pausedAction,
-            paused: paused,
-            merchantsPermitRead: merchantsPermitRead,
-            gameMode: gameMode,
-            characterName: characterName,
-            bank: {
-                lockedItems: lockedItems,
-                tabs: bankTabs,
-                defaultTabs: defaultItemTabs,
-                sortOrder: customSortOrder,
-                glowing: glowingItems,
-                icons: tabIcons
-            },
-            combat: {
-                player: {
-                    character: {
-                        hp: hp,
-                        nextAction: nextAction,
-                        attackCount: attackCount,
-                        nextAttack: nextAttack,
-                        isAttacking: isAttacking,
-                        firstHit: firstHit,
-                        actionTimer: {
-                            ticksLeft: actionTicksLeft,
-                            maxTicks: actionMaxTicks,
-                            active: actionActive
-                        },
-                        regenTimer :{
-                            ticksLeft: regenTicksLeft,
-                            maxTicks: regenMaxTicks,
-                            active: regenActive
-                        },
-                        turnsTaken: turnsTaken,
-                        bufferedRegen: bufferedRegen,
-                        activeEffects: activeEffects,
-                        firstMiss: firstMiss,
-                        barrier: barrier
-                    },
-                    meleeType: melee,
-                    rangedType: ranged,
-                    magicType: magic,
-                    prayerPoints: prayerPoints,
-                    equipmentSet: selectedEquipmentSet,
-                    equipmentSets: equipmentSets,
-                    foodSlot: selectedFoodSlot,
-                    foodSlots: foodSlots,
-                    maxFoodSlot: maxFoodSlot,
-                    summoningTimer: {
-                        ticksLeft: summonTicksLeft,
-                        maxTicks: summonMaxTicks,
-                        active: summonActive
-                    },
-                    soulPoints: soulPoints,
-                    unholyPrayerMultiplier: unholyPrayerMultiplier
+            saveData: {
+                header: {
+                    saveVersion: headerSaveVersion,
+                    saveName: headerSaveName,
+                    gameMode: headerGameMode,
+                    skillLevel: headerSkillLevel,
+                    gp: headerGp,
+                    activeTraining: headerActiveTraining,
+                    activeTrainingName: headerActiveTrainingName,
+                    tickTime: headerTickTime,
+                    saveTime: headerSaveTime,
+                    activeNamespaces: headerActiveNamespaces,
+                    mods: headerMods,
+                    namespaces: headerNamespaces
                 },
-                enemy: {
-                    character: {
-                        hp: enemyHitpoints,
-                        nextAction: enemyAction,
-                        attackCount: enemyAttackCount,
-                        nextAttack: enemyNextAttack,
-                        isAttacking: enemyAttacking,
-                        firstHit: enemyFirstHit,
-                        actionTimer: {
-                            ticksLeft: enemyActionTicksLeft,
-                            maxTicks: enemyActionMaxTicks,
-                            active: enemyActionActive
-                        },
-                        regenTimer: {
-                            ticksLeft: enemyRegenTicksLeft,
-                            maxTicks: enemyRegenMaxTicks,
-                            active: enemyRegenActive
-                        },
-                        turnsTaken: enemyTurnsTaken,
-                        bufferedRegen: enemyBufferedRegen,
-                        activeEffects: enemyActiveEffects,
-                        firstMiss: enemyFirstMiss,
-                        barrier: enemyBarrier
-                    },
-                    state: enemyState,
-                    attackType: enemyAttackType,
-                    enemy: enemy,
-                    damageType: damageType
-                },
-                fightInProgress: fightInProgess,
-                fightTimer: {
-                    ticksLeft: fightSpawnTicksLeft,
-                    maxTicks: fightSpawnMaxTicks,
-                    active: fightSpawnActive
-                },
-                combatActive: combatActive,
-                combatPassives: combatPassives,
-                combatArea: combatArea,
-                combatAreaProgress: combatAreaProgress,
-                monster: monster,
-                combatPaused: combatPaused,
-                loot: loot,
-                slayer: {
-                    taskActive: slayerActive,
-                    task: slayerTask,
-                    left: slayerLeft,
-                    extended: slayerExtended,
-                    category: slayerCategory,
-                    categories: slayerCategories,
-                    timer: {
-                        ticksLeft: slayerTaskTicksLeft,
-                        maxTicks: slayerTaskMaxTicks,
-                        active: slayerTaskActive
-                    },
-                    realm: slayerRealm
-                },
-                event: {
-                    active: activeEvent,
-                    passives: eventPassives,
-                    passivesSelected: eventPassivesSelected,
-                    dungeonLength: eventDungeonLength,
-                    dungeonCompletions: eventDungeonCompletions,
-                    activeEventAreas: activeEventAreas,
-                    progress: eventProgress,
-                    strongholdTier: eventStrongholdTier
-                }
-            },
-            goblinRaid: {
-                player: {
-                    character: {
-                        hp: raidhp,
-                        nextAction: raidnextAction,
-                        attackCount: raidattackCount,
-                        nextAttack: raidnextAttack,
-                        isAttacking: raidisAttacking,
-                        firstHit: raidfirstHit,
-                        actionTimer: {
-                            ticksLeft: raidactionTicksLeft,
-                            maxTicks: raidactionMaxTicks,
-                            active: raidactionActive
-                        },
-                        regenTimer :{
-                            ticksLeft: raidregenTicksLeft,
-                            maxTicks: raidregenMaxTicks,
-                            active: raidregenActive
-                        },
-                        turnsTaken: raidturnsTaken,
-                        bufferedRegen: raidbufferedRegen,
-                        activeEffects: raidactiveEffects,
-                        firstMiss: raidfirstMiss,
-                        barrier: raidbarrier
-                    },
-                    meleeType: raidMeleeStyle,
-                    rangedType: raidRangedStyle,
-                    magicType: raidMagicStyle,
-                    prayerPoints: raidprayerPoints,
-                    equipmentSet: raidselectedEquipmentSet,
-                    equipmentSets: raidequipmentSets,
-                    foodSlot: raidselectedFoodSlot,
-                    foodSlots: raidfoodSlots,
-                    maxFoodSlot: raidmaxFoodSlot,
-                    summoningTimer: {
-                        ticksLeft: raidsummonTicksLeft,
-                        maxTicks: raidsummonMaxTicks,
-                        active: raidsummonActive
-                    },
-                    soulPoints: raidsoulPoints,
-                    unholyPrayerMultiplier: raidunholyPrayerMultiplier,
-                    altAttacks: raidAltAttacks
-                },
-                enemy: {
-                    character: {
-                        hp: raidenemyHitpoints,
-                        nextAction: raidenemyAction,
-                        attackCount: raidenemyAttackCount,
-                        nextAttack: raidenemyNextAttack,
-                        isAttacking: raidenemyAttacking,
-                        firstHit: raidenemyFirstHit,
-                        actionTimer: {
-                            ticksLeft: raidenemyActionTicksLeft,
-                            maxTicks: raidenemyActionMaxTicks,
-                            active: raidenemyActionActive
-                        },
-                        regenTimer: {
-                            ticksLeft: raidenemyRegenTicksLeft,
-                            maxTicks: raidenemyRegenMaxTicks,
-                            active: raidenemyRegenActive
-                        },
-                        turnsTaken: raidenemyTurnsTaken,
-                        bufferedRegen: raidenemyBufferedRegen,
-                        activeEffects: raidenemyActiveEffects,
-                        firstMiss: raidenemyFirstMiss,
-                        barrier: raidenemyBarrier
-                    },
-                    state: raidenemyState,
-                    attackType: raidenemyAttackType,
-                    enemy: raidenemy,
-                    goblin: goblin
-                },
-                inProgress: raidfightInProgess,
-                spawnTimer: {
-                    ticksLeft: raidfightSpawnTicksLeft,
-                    maxTicks: raidfightSpawnMaxTicks,
-                    active: raidfightSpawnActive
-                },
-                active: raidcombatActive,
-                passives: raidcombatPassives,
-                playerModifiers: raidPlayerModifiers,
-                enemyModifiers: raidEnemyModifiers,
-                state: raidState,
-                difficulty: raidDifficulty,
+                tickTime: tickTime,
+                saveTime: saveTime,
+                activeAction: activeAction,
+                pausedAction: pausedAction,
+                paused: paused,
+                merchantsPermitRead: merchantsPermitRead,
+                gameMode: gameMode,
+                characterName: characterName,
                 bank: {
-                    lockedItems: raidlockedItems,
-                    bankTabs: raidbankTabs,
-                    defaultItemTabs: raiddefaultItemTabs,
-                    customSortOrder: raidcustomSortOrder,
-                    glowingItems: raidglowingItems,
-                    tabIcons: raidtabIcons
+                    lockedItems: lockedItems,
+                    tabs: bankTabs,
+                    defaultTabs: defaultItemTabs,
+                    sortOrder: customSortOrder,
+                    glowing: glowingItems,
+                    icons: tabIcons
                 },
-                wave: raidWave,
-                waveProgress: raidWaveProgress,
-                killCount: raidKillCount,
-                start: raidStart,
-                ownedCrateItems: raidOwnedCrateItems,
-                randomModifiers: raidRandomModifiers,
-                positiveModifier: raidSelectedPositiveModifier,
-                items: {
-                    weapons: raidItemWeapons,
-                    armour: raidItemArmour,
-                    ammo: raidItemAmmo,
-                    runes: raidItemRunes,
-                    food: raidItemFoods,
-                    passives: raidItemPassives
+                combat: {
+                    player: {
+                        character: {
+                            hp: hp,
+                            nextAction: nextAction,
+                            attackCount: attackCount,
+                            nextAttack: nextAttack,
+                            isAttacking: isAttacking,
+                            firstHit: firstHit,
+                            actionTimer: {
+                                ticksLeft: actionTicksLeft,
+                                maxTicks: actionMaxTicks,
+                                active: actionActive
+                            },
+                            regenTimer :{
+                                ticksLeft: regenTicksLeft,
+                                maxTicks: regenMaxTicks,
+                                active: regenActive
+                            },
+                            turnsTaken: turnsTaken,
+                            bufferedRegen: bufferedRegen,
+                            activeEffects: activeEffects,
+                            firstMiss: firstMiss,
+                            barrier: barrier
+                        },
+                        meleeType: melee,
+                        rangedType: ranged,
+                        magicType: magic,
+                        prayerPoints: prayerPoints,
+                        equipmentSet: selectedEquipmentSet,
+                        equipmentSets: equipmentSets,
+                        foodSlot: selectedFoodSlot,
+                        foodSlots: foodSlots,
+                        maxFoodSlot: maxFoodSlot,
+                        summoningTimer: {
+                            ticksLeft: summonTicksLeft,
+                            maxTicks: summonMaxTicks,
+                            active: summonActive
+                        },
+                        soulPoints: soulPoints,
+                        unholyPrayerMultiplier: unholyPrayerMultiplier
+                    },
+                    enemy: {
+                        character: {
+                            hp: enemyHitpoints,
+                            nextAction: enemyAction,
+                            attackCount: enemyAttackCount,
+                            nextAttack: enemyNextAttack,
+                            isAttacking: enemyAttacking,
+                            firstHit: enemyFirstHit,
+                            actionTimer: {
+                                ticksLeft: enemyActionTicksLeft,
+                                maxTicks: enemyActionMaxTicks,
+                                active: enemyActionActive
+                            },
+                            regenTimer: {
+                                ticksLeft: enemyRegenTicksLeft,
+                                maxTicks: enemyRegenMaxTicks,
+                                active: enemyRegenActive
+                            },
+                            turnsTaken: enemyTurnsTaken,
+                            bufferedRegen: enemyBufferedRegen,
+                            activeEffects: enemyActiveEffects,
+                            firstMiss: enemyFirstMiss,
+                            barrier: enemyBarrier
+                        },
+                        state: enemyState,
+                        attackType: enemyAttackType,
+                        enemy: enemy,
+                        damageType: damageType
+                    },
+                    fightInProgress: fightInProgess,
+                    fightTimer: {
+                        ticksLeft: fightSpawnTicksLeft,
+                        maxTicks: fightSpawnMaxTicks,
+                        active: fightSpawnActive
+                    },
+                    combatActive: combatActive,
+                    combatPassives: combatPassives,
+                    combatArea: combatArea,
+                    combatAreaProgress: combatAreaProgress,
+                    monster: monster,
+                    combatPaused: combatPaused,
+                    loot: loot,
+                    slayer: {
+                        taskActive: slayerActive,
+                        task: slayerTask,
+                        left: slayerLeft,
+                        extended: slayerExtended,
+                        category: slayerCategory,
+                        categories: slayerCategories,
+                        timer: {
+                            ticksLeft: slayerTaskTicksLeft,
+                            maxTicks: slayerTaskMaxTicks,
+                            active: slayerTaskActive
+                        },
+                        realm: slayerRealm
+                    },
+                    event: {
+                        active: activeEvent,
+                        passives: eventPassives,
+                        passivesSelected: eventPassivesSelected,
+                        dungeonLength: eventDungeonLength,
+                        dungeonCompletions: eventDungeonCompletions,
+                        activeEventAreas: activeEventAreas,
+                        progress: eventProgress,
+                        strongholdTier: eventStrongholdTier
+                    }
                 },
-                itemCategory: raidItemCategory,
-                positiveModifiers: raidPosMods,
-                negativeModifiers: raidNegMods,
-                paused: raidPaused,
-                history: raidHistories
+                goblinRaid: {
+                    player: {
+                        character: {
+                            hp: raidhp,
+                            nextAction: raidnextAction,
+                            attackCount: raidattackCount,
+                            nextAttack: raidnextAttack,
+                            isAttacking: raidisAttacking,
+                            firstHit: raidfirstHit,
+                            actionTimer: {
+                                ticksLeft: raidactionTicksLeft,
+                                maxTicks: raidactionMaxTicks,
+                                active: raidactionActive
+                            },
+                            regenTimer :{
+                                ticksLeft: raidregenTicksLeft,
+                                maxTicks: raidregenMaxTicks,
+                                active: raidregenActive
+                            },
+                            turnsTaken: raidturnsTaken,
+                            bufferedRegen: raidbufferedRegen,
+                            activeEffects: raidactiveEffects,
+                            firstMiss: raidfirstMiss,
+                            barrier: raidbarrier
+                        },
+                        meleeType: raidMeleeStyle,
+                        rangedType: raidRangedStyle,
+                        magicType: raidMagicStyle,
+                        prayerPoints: raidprayerPoints,
+                        equipmentSet: raidselectedEquipmentSet,
+                        equipmentSets: raidequipmentSets,
+                        foodSlot: raidselectedFoodSlot,
+                        foodSlots: raidfoodSlots,
+                        maxFoodSlot: raidmaxFoodSlot,
+                        summoningTimer: {
+                            ticksLeft: raidsummonTicksLeft,
+                            maxTicks: raidsummonMaxTicks,
+                            active: raidsummonActive
+                        },
+                        soulPoints: raidsoulPoints,
+                        unholyPrayerMultiplier: raidunholyPrayerMultiplier,
+                        altAttacks: raidAltAttacks
+                    },
+                    enemy: {
+                        character: {
+                            hp: raidenemyHitpoints,
+                            nextAction: raidenemyAction,
+                            attackCount: raidenemyAttackCount,
+                            nextAttack: raidenemyNextAttack,
+                            isAttacking: raidenemyAttacking,
+                            firstHit: raidenemyFirstHit,
+                            actionTimer: {
+                                ticksLeft: raidenemyActionTicksLeft,
+                                maxTicks: raidenemyActionMaxTicks,
+                                active: raidenemyActionActive
+                            },
+                            regenTimer: {
+                                ticksLeft: raidenemyRegenTicksLeft,
+                                maxTicks: raidenemyRegenMaxTicks,
+                                active: raidenemyRegenActive
+                            },
+                            turnsTaken: raidenemyTurnsTaken,
+                            bufferedRegen: raidenemyBufferedRegen,
+                            activeEffects: raidenemyActiveEffects,
+                            firstMiss: raidenemyFirstMiss,
+                            barrier: raidenemyBarrier
+                        },
+                        state: raidenemyState,
+                        attackType: raidenemyAttackType,
+                        enemy: raidenemy,
+                        goblin: goblin
+                    },
+                    inProgress: raidfightInProgess,
+                    spawnTimer: {
+                        ticksLeft: raidfightSpawnTicksLeft,
+                        maxTicks: raidfightSpawnMaxTicks,
+                        active: raidfightSpawnActive
+                    },
+                    active: raidcombatActive,
+                    passives: raidcombatPassives,
+                    playerModifiers: raidPlayerModifiers,
+                    enemyModifiers: raidEnemyModifiers,
+                    state: raidState,
+                    difficulty: raidDifficulty,
+                    bank: {
+                        lockedItems: raidlockedItems,
+                        tabs: raidbankTabs,
+                        defaultTabs: raiddefaultItemTabs,
+                        sortOrder: raidcustomSortOrder,
+                        glowing: raidglowingItems,
+                        icons: raidtabIcons
+                    },
+                    wave: raidWave,
+                    waveProgress: raidWaveProgress,
+                    killCount: raidKillCount,
+                    start: raidStart,
+                    ownedCrateItems: raidOwnedCrateItems,
+                    randomModifiers: raidRandomModifiers,
+                    positiveModifier: raidSelectedPositiveModifier,
+                    items: {
+                        weapons: raidItemWeapons,
+                        armour: raidItemArmour,
+                        ammo: raidItemAmmo,
+                        runes: raidItemRunes,
+                        food: raidItemFoods,
+                        passives: raidItemPassives
+                    },
+                    itemCategory: raidItemCategory,
+                    positiveModifiers: raidPosMods,
+                    negativeModifiers: raidNegMods,
+                    paused: raidPaused,
+                    history: raidHistories
+                },
+                minibar: MinibarItems,
+                pets: petList,
+                shop: {
+                    items: shopItems,
+                    purchases: purchaseQty
+                },
+                itemCharges: itemCharges,
+                tutorialComplete: tutorialComplete,
+                potions: {
+                    list: potionList,
+                    reuse: potionReuse
+                },
+                stats: {
+                    woodcutting: woodcuttingStats,
+                    fishing: fishingStats,
+                    firemaking: firemakingStats,
+                    cooking: cookingStats,
+                    mining: miningStats,
+                    smithing: smithingStats,
+                    attack: attackStats,
+                    strength: strengthStats,
+                    defence: defenceStats,
+                    hitpoints: hitpointsStats,
+                    theiving: theivingStats,
+                    farming: farmingStats,
+                    ranged: rangedStats,
+                    fletching: fletchingStats,
+                    crafting: craftingStats,
+                    runecrafting: runecraftingStats,
+                    magic: magicStats,
+                    prayer: prayerStats,
+                    slayer: slayerStats,
+                    herblore: herbloreStats,
+                    agility: agilityStats,
+                    summoning: summoningStats,
+                    items: itemsStats,
+                    monsters: monstersStats,
+                    general: generalStats,
+                    combat: combatStats,
+                    goblinRaid: goblinStats,
+                    astrology: astrologyStats,
+                    shop: shopStats,
+                    township: townshipStats,
+                    cartography: cartographyStats,
+                    archaeology: archaeologyStats,
+                    corruption: corruptionStats,
+                    harvesting: harvestingStats
+                },
+                settings: {
+                    continueIfBankFull: settingcontinueIfBankFull,
+                    continueThievingOnStun: settingcontinueThievingOnStun,
+                    autoRestartDungeon: settingautoRestartDungeon,
+                    autoCloudSave: settingautoCloudSave,
+                    darkMode: settingdarkMode,
+                    showGPNotifications: settingshowGPNotifications,
+                    enableAccessibility: settingenableAccessibility,
+                    showEnemySkillLevels: settingshowEnemySkillLevels,
+                    showCloseConfirmations: settingshowCloseConfirmations,
+                    hideThousandsSeperator: settinghideThousandsSeperator,
+                    showVirtualLevels: settingshowVirtualLevels,
+                    showSaleConfirmations: settingshowSaleConfirmations,
+                    showShopConfirmations: settingshowShopConfirmations,
+                    pauseOnUnfocus: settingpauseOnUnfocus,
+                    showCombatMinibar: settingshowCombatMinibar,
+                    showCombatMinibarCombat: settingshowCombatMinibarCombat,
+                    showSkillingMinibar: settingshowSkillingMinibar,
+                    useCombinationRunes: settinguseCombinationRunes,
+                    enableAutoSlayer: settingenableAutoSlayer,
+                    showItemNotifications: settingshowItemNotifications,
+                    useSmallLevelUpNotifications: settinguseSmallLevelUpNotifications,
+                    useDefaultBankBorders: settinguseDefaultBankBorders,
+                    defaultToCurrentEquipSet: settingdefaultToCurrentEquipSet,
+                    hideMaxLevelMasteries: settinghideMaxLevelMasteries,
+                    showMasteryCheckpointconfirmations: settingshowMasteryCheckpointconfirmations,
+                    enableOfflinePushNotifications: settingenableOfflinePushNotifications,
+                    enableFarmingPushNotifications: settingenableFarmingPushNotifications,
+                    enableOfflineCombat: settingenableOfflineCombat,
+                    enableMiniSidebar: settingenableMiniSidebar,
+                    enableAutoEquipFood: settingenableAutoEquipFood,
+                    enableAutoSwapFood: settingenableAutoSwapFood,
+                    enablePerfectCooking: settingenablePerfectCooking,
+                    showCropDestructionConfirmations: settingshowCropDestructionConfirmations,
+                    showAstrologyMaxRollConfirmations: settingshowAstrologyMaxRollConfirmations,
+                    showQuantityInItemNotifications: settingshowQuantityInItemNotifications,
+                    showItemPreservationNotifications: settingshowItemPreservationNotifications,
+                    showSlayerCoinNotifications: settingshowSlayerCoinNotifications,
+                    showEquipmentSetsInCombatMinibar: settingshowEquipmentSetsInCombatMinibar,
+                    showBarsInCombatMinibar: settingshowBarsInCombatMinibar,
+                    showCombatStunNotifications: settingshowCombatStunNotifications,
+                    showCombatSleepNotifications: settingshowCombatSleepNotifications,
+                    showSummoningMarkDiscoveryModals: settingshowSummoningMarkDiscoveryModals,
+                    enableCombatDamageSplashes: settingenableCombatDamageSplashes,
+                    enableProgressBars: settingenableProgressBars,
+                    showTierIPotions: settingshowTierIPotions,
+                    showTierIIPotions: settingshowTierIIPotions,
+                    showTierIIIPotions: settingshowTierIIIPotions,
+                    showTierIVPotions: settingshowTierIVPotions,
+                    showNeutralAttackModifiers: settingshowNeutralAttackModifiers,
+                    defaultPageOnLoad: settingdefaultPageOnLoad,
+                    formatNumberSetting: settingformatNumberSetting,
+                    bankSortOrder: settingbankSortOrder,
+                    colourBlindMode: settingcolourBlindMode,
+                    enableEyebleachMode: settingenableEyebleachMode,
+                    enableQuickConvert: settingenableQuickConvert,
+                    showLockedTownshipBuildings: settingshowLockedTownshipBuildings,
+                    useNewNotifications: settinguseNewNotifications,
+                    notificationHorizontalPosition: settingnotificationHorizontalPosition,
+                    notificationDisappearDelay: settingnotificationDisappearDelay,
+                    showItemNamesInNotifications: settingshowItemNamesInNotifications,
+                    importanceSummoningMarkFound: settingimportanceSummoningMarkFound,
+                    importanceErrorMessages: settingimportanceErrorMessages,
+                    enableScrollableBankTabs: settingenableScrollableBankTabs,
+                    showWikiLinks: settingshowWikiLinks,
+                    disableHexGridOutsideSight: settingdisableHexGridOutsideSight,
+                    mapTextureQuality: settingmapTextureQuality,
+                    enableMapAntialiasing: settingenableMapAntialiasing,
+                    showSkillXPNotifications: settingshowSkillXPNotifications,
+                    backgroundImage: settingbackgroundImage,
+                    superDarkMode: settingsuperDarkMode,
+                    showExpansionBackgroundColours: settingshowExpansionBackgroundColours,
+                    showCombatAreaWarnings: settingshowCombatAreaWarnings,
+                    useCompactNotifications: settinguseCompactNotifications,
+                    useLegacyNotifications: settinguseLegacyNotifications,
+                    useCat: settinguseCat,
+                    throttleFrameRateOnInactivity: settingthrottleFrameRateOnInactivity,
+                    cartographyFrameRateCap: settingcartographyFrameRateCap,
+                    toggleBirthdayEvent: settingtoggleBirthdayEvent,
+                    toggleDiscordRPC: settingtoggleDiscordRPC,
+                    genericArtefactAllButOne: settinggenericArtefactAllButOne,
+                    hiddenMasteryNamespaces: settinghiddenMasteryNamespaces,
+                    enableDoubleClickEquip: settingenableDoubleClickEquip,
+                    enableDoubleClickOpen: settingenableDoubleClickOpen,
+                    enableDoubleClickBury: settingenableDoubleClickBury,
+                    showAbyssalPiecesNotifications: settingshowAbyssalPiecesNotifications,
+                    showAbyssalSlayerCoinNotifications: settingshowAbyssalSlayerCoinNotifications,
+                    enablePermaCorruption: settingenablePermaCorruption,
+                    showAPNextToShopSidebar: settingshowAPNextToShopSidebar,
+                    showASCNextToSlayerSidebar: settingshowASCNextToSlayerSidebar,
+                    sidebarLevels: settingsidebarLevels,
+                    showAbyssalXPNotifications: settingshowAbyssalXPNotifications,
+                    showSPNextToPrayerSidebar: settingshowSPNextToPrayerSidebar,
+                    enableStickyBankTabs: settingenableStickyBankTabs,
+                    useLegacyRealmSelection: settinguseLegacyRealmSelection,
+                    showOpacityForSkillNavs: settingshowOpacityForSkillNavs,
+                    bankFilterShowAll: settingbankFilterShowAll,
+                    bankFilterShowDemo: settingbankFilterShowDemo,
+                    bankFilterShowFull: settingbankFilterShowFull,
+                    bankFilterShowTotH: settingbankFilterShowTotH,
+                    bankFilterShowAoD: settingbankFilterShowAoD,
+                    bankFilterShowItA: settingbankFilterShowItA,
+                    bankFilterShowDamageReduction: settingbankFilterShowDamageReduction,
+                    bankFilterShowAbyssalResistance: settingbankFilterShowAbyssalResistance,
+                    bankFilterShowNormalDamage: settingbankFilterShowNormalDamage,
+                    bankFilterShowAbyssalDamage: settingbankFilterShowAbyssalDamage,
+                    bankFilterShowSkillXP: settingbankFilterShowSkillXP,
+                    bankFilterShowAbyssalXP: settingbankFilterShowAbyssalXP,
+                    alwaysShowRealmSelectAgility: settingalwaysShowRealmSelectAgility,
+                    enableSwipeSidebar: settingenableSwipeSidebar,
+                    keyBindings: keyBindings
+                },
+                news: news,
+                lastLoadedGameVersion: lastLoadedGameVersion,
+                scheduledPushNotifications: scheduledPushNotifications,
+                skills: skills,
+                mods: mods,
+                completion: {
+                    completion: completion,
+                    birthdayCompletions: birthdayCompletions,
+                    clueHuntStep: clueHuntStep,
+                    areaCompletions: areaCompletions,
+                    strongholdCompletions: strongholdCompletions
+                },
+                currencies: currencies,
+                levelCapIncreases: {
+                    increases: levelCapIncreases,
+                    selected: levelCapIncreasesSelected,
+                    bought: levelCapIncreasesBought,
+                    abyssalBought: abyssalLevelCapIncreasesBought,
+                },
+                realm: realm
             },
-            minibar: MinibarItems,
-            pets: petList,
-            shop: {
-                items: shopItems,
-                purchases: purchaseQty
-            },
-            itemCharges: itemCharges,
-            tutorialComplete: tutorialComplete,
-            potions: {
-                list: potionList,
-                reuse: potionReuse
-            },
-            stats: {
-                woodcutting: woodcuttingStats,
-                fishing: fishingStats,
-                firemaking: firemakingStats,
-                cooking: cookingStats,
-                mining: miningStats,
-                smithing: smithingStats,
-                attack: attackStats,
-                strength: strengthStats,
-                defence: defenceStats,
-                hitpoints: hitpointsStats,
-                theiving: theivingStats,
-                farming: farmingStats,
-                ranged: rangedStats,
-                fletching: fletchingStats,
-                crafting: craftingStats,
-                runecrafting: runecraftingStats,
-                magic: magicStats,
-                prayer: prayerStats,
-                slayer: slayerStats,
-                herblore: herbloreStats,
-                agility: agilityStats,
-                summoning: summoningStats,
-                items: itemsStats,
-                monsters: monstersStats,
-                general: generalStats,
-                combat: combatStats,
-                goblinRaid: goblinStats,
-                astrology: astrologyStats,
-                shop: shopStats,
-                township: townshipStats,
-                cartography: cartographyStats,
-                archaeology: archaeologyStats,
-                corruption: corruptionStats,
-                harvesting: harvestingStats
-            },
-            settings: {
-                continueIfBankFull: settingcontinueIfBankFull,
-                continueThievingOnStun: settingcontinueThievingOnStun,
-                autoRestartDungeon: settingautoRestartDungeon,
-                autoCloudSave: settingautoCloudSave,
-                darkMode: settingdarkMode,
-                showGPNotifications: settingshowGPNotifications,
-                enableAccessibility: settingenableAccessibility,
-                showEnemySkillLevels: settingshowEnemySkillLevels,
-                showCloseConfirmations: settingshowCloseConfirmations,
-                hideThousandsSeperator: settinghideThousandsSeperator,
-                showVirtualLevels: settingshowVirtualLevels,
-                showSaleConfirmations: settingshowSaleConfirmations,
-                showShopConfirmations: settingshowShopConfirmations,
-                pauseOnUnfocus: settingpauseOnUnfocus,
-                showCombatMinibar: settingshowCombatMinibar,
-                showCombatMinibarCombat: settingshowCombatMinibarCombat,
-                showSkillingMinibar: settingshowSkillingMinibar,
-                useCombinationRunes: settinguseCombinationRunes,
-                enableAutoSlayer: settingenableAutoSlayer,
-                showItemNotifications: settingshowItemNotifications,
-                useSmallLevelUpNotifications: settinguseSmallLevelUpNotifications,
-                useDefaultBankBorders: settinguseDefaultBankBorders,
-                defaultToCurrentEquipSet: settingdefaultToCurrentEquipSet,
-                hideMaxLevelMasteries: settinghideMaxLevelMasteries,
-                showMasteryCheckpointconfirmations: settingshowMasteryCheckpointconfirmations,
-                enableOfflinePushNotifications: settingenableOfflinePushNotifications,
-                enableFarmingPushNotifications: settingenableFarmingPushNotifications,
-                enableOfflineCombat: settingenableOfflineCombat,
-                enableMiniSidebar: settingenableMiniSidebar,
-                enableAutoEquipFood: settingenableAutoEquipFood,
-                enableAutoSwapFood: settingenableAutoSwapFood,
-                enablePerfectCooking: settingenablePerfectCooking,
-                showCropDestructionConfirmations: settingshowCropDestructionConfirmations,
-                showAstrologyMaxRollConfirmations: settingshowAstrologyMaxRollConfirmations,
-                showQuantityInItemNotifications: settingshowQuantityInItemNotifications,
-                showItemPreservationNotifications: settingshowItemPreservationNotifications,
-                showSlayerCoinNotifications: settingshowSlayerCoinNotifications,
-                showEquipmentSetsInCombatMinibar: settingshowEquipmentSetsInCombatMinibar,
-                showBarsInCombatMinibar: settingshowBarsInCombatMinibar,
-                showCombatStunNotifications: settingshowCombatStunNotifications,
-                showCombatSleepNotifications: settingshowCombatSleepNotifications,
-                showSummoningMarkDiscoveryModals: settingshowSummoningMarkDiscoveryModals,
-                enableCombatDamageSplashes: settingenableCombatDamageSplashes,
-                enableProgressBars: settingenableProgressBars,
-                showTierIPotions: settingshowTierIPotions,
-                showTierIIPotions: settingshowTierIIPotions,
-                showTierIIIPotions: settingshowTierIIIPotions,
-                showTierIVPotions: settingshowTierIVPotions,
-                showNeutralAttackModifiers: settingshowNeutralAttackModifiers,
-                defaultPageOnLoad: settingdefaultPageOnLoad,
-                formatNumberSetting: settingformatNumberSetting,
-                bankSortOrder: settingbankSortOrder,
-                colourBlindMode: settingcolourBlindMode,
-                enableEyebleachMode: settingenableEyebleachMode,
-                enableQuickConvert: settingenableQuickConvert,
-                showLockedTownshipBuildings: settingshowLockedTownshipBuildings,
-                useNewNotifications: settinguseNewNotifications,
-                notificationHorizontalPosition: settingnotificationHorizontalPosition,
-                notificationDisappearDelay: settingnotificationDisappearDelay,
-                showItemNamesInNotifications: settingshowItemNamesInNotifications,
-                importanceSummoningMarkFound: settingimportanceSummoningMarkFound,
-                importanceErrorMessages: settingimportanceErrorMessages,
-                enableScrollableBankTabs: settingenableScrollableBankTabs,
-                showWikiLinks: settingshowWikiLinks,
-                disableHexGridOutsideSight: settingdisableHexGridOutsideSight,
-                mapTextureQuality: settingmapTextureQuality,
-                enableMapAntialiasing: settingenableMapAntialiasing,
-                showSkillXPNotifications: settingshowSkillXPNotifications,
-                backgroundImage: settingbackgroundImage,
-                superDarkMode: settingsuperDarkMode,
-                showExpansionBackgroundColours: settingshowExpansionBackgroundColours,
-                showCombatAreaWarnings: settingshowCombatAreaWarnings,
-                useCompactNotifications: settinguseCompactNotifications,
-                useLegacyNotifications: settinguseLegacyNotifications,
-                useCat: settinguseCat,
-                throttleFrameRateOnInactivity: settingthrottleFrameRateOnInactivity,
-                cartographyFrameRateCap: settingcartographyFrameRateCap,
-                toggleBirthdayEvent: settingtoggleBirthdayEvent,
-                toggleDiscordRPC: settingtoggleDiscordRPC,
-                genericArtefactAllButOne: settinggenericArtefactAllButOne,
-                hiddenMasteryNamespaces: settinghiddenMasteryNamespaces,
-                enableDoubleClickEquip: settingenableDoubleClickEquip,
-                enableDoubleClickOpen: settingenableDoubleClickOpen,
-                enableDoubleClickBury: settingenableDoubleClickBury,
-                showAbyssalPiecesNotifications: settingshowAbyssalPiecesNotifications,
-                showAbyssalSlayerCoinNotifications: settingshowAbyssalSlayerCoinNotifications,
-                enablePermaCorruption: settingenablePermaCorruption,
-                showAPNextToShopSidebar: settingshowAPNextToShopSidebar,
-                showASCNextToSlayerSidebar: settingshowASCNextToSlayerSidebar,
-                sidebarLevels: settingsidebarLevels,
-                showAbyssalXPNotifications: settingshowAbyssalXPNotifications,
-                showSPNextToPrayerSidebar: settingshowSPNextToPrayerSidebar,
-                enableStickyBankTabs: settingenableStickyBankTabs,
-                useLegacyRealmSelection: settinguseLegacyRealmSelection,
-                showOpacityForSkillNavs: settingshowOpacityForSkillNavs,
-                bankFilterShowAll: settingbankFilterShowAll,
-                bankFilterShowDemo: settingbankFilterShowDemo,
-                bankFilterShowFull: settingbankFilterShowFull,
-                bankFilterShowTotH: settingbankFilterShowTotH,
-                bankFilterShowAoD: settingbankFilterShowAoD,
-                bankFilterShowItA: settingbankFilterShowItA,
-                bankFilterShowDamageReduction: settingbankFilterShowDamageReduction,
-                bankFilterShowAbyssalResistance: settingbankFilterShowAbyssalResistance,
-                bankFilterShowNormalDamage: settingbankFilterShowNormalDamage,
-                bankFilterShowAbyssalDamage: settingbankFilterShowAbyssalDamage,
-                bankFilterShowSkillXP: settingbankFilterShowSkillXP,
-                bankFilterShowAbyssalXP: settingbankFilterShowAbyssalXP,
-                alwaysShowRealmSelectAgility: settingalwaysShowRealmSelectAgility,
-                enableSwipeSidebar: settingenableSwipeSidebar,
-                keyBindings: keyBindings
-            },
-            news: news,
-            lastLoadedGameVersion: lastLoadedGameVersion,
-            scheduledPushNotifications: scheduledPushNotifications,
-            skills: skills,
-            mods: mods,
-            completion: {
-                completion: completion,
-                birthdayCompletions: birthdayCompletions,
-                clueHuntStep: clueHuntStep,
-                areaCompletions: areaCompletions,
-                strongholdCompletions: strongholdCompletions
-            },
-            currencies: currencies,
-            levelCapIncreases: {
-                increases: levelCapIncreases,
-                selected: levelCapIncreasesSelected,
-                bought: levelCapIncreasesBought,
-                abyssalBought: abyssalLevelCapIncreasesBought,
-            },
-            realm: realm
+            initialSize: reader.dataView.byteLength
         };
-    } catch {
-        return "Invalid save string";
+    } catch (e: any) {
+        if (!(e instanceof Error)) {
+            e = new Error(e);
+        }
+        return e.message;
     }
 }
