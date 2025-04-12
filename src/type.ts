@@ -575,7 +575,7 @@ export type saveData = {
         showTierIIIPotions: boolean,
         showTierIVPotions: boolean,
         showNeutralAttackModifiers: boolean,
-        defaultPageOnLoad: number,
+        defaultPageOnLoad: string,
         formatNumberSetting: number,
         bankSortOrder: number,
         colourBlindMode: number,
@@ -640,7 +640,7 @@ export type saveData = {
     news: Array<string>,
     lastLoadedGameVersion: string,
     scheduledPushNotifications: Array<pushNotification>,
-    skills: Map<number, skill>,
+    skills: Map<string, skill>,
     mods: Map<number, {settings: string, storage: string}>,
     completion: {
         completion: string,

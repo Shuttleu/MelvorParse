@@ -103,7 +103,7 @@ class Reader {
 var reader = new Reader();
 reader.saveString = readFileSync('./save.txt', 'utf8');;
 
-
+reader.parseString();
 
 const knownNamespaces = ["melvorD", "melvorF", "melvorAoD", "melvorTotH", "melvorItA"];
 

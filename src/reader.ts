@@ -129,7 +129,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                 )
         );
 
-        function findItemFromNamespace(item: number) {
+        function findNamespaceFromItem(item: number) {
             var result = ""
             headerNamespaces.forEach((value, key) => {
                 value.forEach((v: number, k: string) => {
@@ -161,33 +161,33 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         reader.getUint32();
         const tickTime = reader.getFloat64();
         const saveTime = reader.getFloat64();
-        const activeAction = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const activeAction = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
-        const pausedAction = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const pausedAction = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
         
         const paused = reader.getBoolean();
         const merchantsPermitRead = reader.getBoolean();
-        const gameMode = findItemFromNamespace(reader.getUint16());
+        const gameMode = findNamespaceFromItem(reader.getUint16());
         const characterName = reader.getString();
         // Bank start
-        const lockedItems = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const lockedItems = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         const bankTabs = reader.getArray(
             (reader) => reader.getMap(
-                (reader) => findItemFromNamespace(reader.getUint16()),
+                (reader) => findNamespaceFromItem(reader.getUint16()),
                 (reader) => reader.getUint32()
             )
         );
         
         const defaultItemTabs = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => reader.getUint8()
         );
-        const customSortOrder = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
-        const glowingItems = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const customSortOrder = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
+        const glowingItems = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         const tabIcons = reader.getMap(
             (reader) => reader.getUint8(),
-            (reader) => findItemFromNamespace(reader.getUint16())
+            (reader) => findNamespaceFromItem(reader.getUint16())
         );
         // Bank Complete
         
@@ -197,7 +197,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const hp = reader.getUint32();
         const nextAction = reader.getUint8();
         const attackCount = reader.getUint32();
-        const nextAttack = findItemFromNamespace(reader.getUint16());
+        const nextAttack = findNamespaceFromItem(reader.getUint16());
         const isAttacking = reader.getBoolean();
         const firstHit = reader.getBoolean();
         const actionTicksLeft = reader.getUint32();
@@ -209,7 +209,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const turnsTaken = reader.getUint32();
         const bufferedRegen = reader.getUint32();
         const activeEffects = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     player: reader.getBoolean(),
@@ -228,11 +228,11 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         );
         const firstMiss = reader.getBoolean();
         const barrier = reader.getUint32();
-        const melee = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const melee = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
-        const ranged = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const ranged = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
-        const magic = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const magic = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
         
         const prayerPoints = reader.getUint32();
@@ -240,14 +240,14 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const equipmentSets = reader.getArray((reader) => {
             return {
                 equipment: reader.getArray((reader) => {
-                    const id = findItemFromNamespace(reader.getUint16());
+                    const id = findNamespaceFromItem(reader.getUint16());
                     var stackable: string | undefined = undefined;
                     var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
-                        stackable = findItemFromNamespace(reader.getUint16());
+                        stackable = findNamespaceFromItem(reader.getUint16());
                         qty = reader.getUint32();
                     }
-                    const quickEquip = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+                    const quickEquip = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
                     return {
                         id: id,
                         stackable: stackable,
@@ -256,17 +256,17 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                     };
                 }),
                 spells: {
-                    spell: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined,
-                    aura: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined,
-                    curse: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined
+                    spell: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                    aura: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                    curse: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined
                 },
-                prayers: reader.getArray((reader) => findItemFromNamespace(reader.getUint16()))
+                prayers: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
             }
         });
         const selectedFoodSlot = reader.getUint32();
         const maxFoodSlot = reader.getUint32();
         const foodSlots = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => reader.getUint32()
         );
         const summonTicksLeft = reader.getUint32();
@@ -280,7 +280,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const enemyHitpoints = reader.getUint32();
         const enemyAction = reader.getUint8();
         const enemyAttackCount = reader.getUint32();
-        const enemyNextAttack = findItemFromNamespace(reader.getUint16());
+        const enemyNextAttack = findNamespaceFromItem(reader.getUint16());
         const enemyAttacking = reader.getBoolean();
         const enemyFirstHit = reader.getBoolean();
         
@@ -294,7 +294,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const enemyTurnsTaken = reader.getUint32();
         const enemyBufferedRegen = reader.getUint32();
         const enemyActiveEffects = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     player: reader.getBoolean(),
@@ -319,8 +319,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         const enemyState = reader.getUint8();
         const enemyAttackType = reader.getUint8();
-        const enemy = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
-        const damageType = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const enemy = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
+        const damageType = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         // Enemy Complete
         // Fight Start
         const fightInProgess = reader.getBoolean();
@@ -328,42 +328,42 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const fightSpawnMaxTicks = reader.getUint32();
         const fightSpawnActive = reader.getBoolean();
         const combatActive = reader.getBoolean();
-        const combatPassives = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getBoolean());
+        const combatPassives = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getBoolean());
         const combatArea = reader.getBoolean() ? {
             area: reader.getUint8(),
-            subArea: findItemFromNamespace(reader.getUint16())
+            subArea: findNamespaceFromItem(reader.getUint16())
         } : undefined
         
         const combatAreaProgress = reader.getUint32();
-        const monster = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const monster = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         const combatPaused = reader.getBoolean();
-        const loot = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const loot = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         
         
         
         // Slayer start
         const slayerActive = reader.getBoolean();
-        const slayerTask = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const slayerTask = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
         const slayerLeft = reader.getUint32();
         const slayerExtended = reader.getBoolean();
-        const slayerCategory = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const slayerCategory = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
-        const slayerCategories = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const slayerCategories = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         
         const slayerTaskTicksLeft = reader.getUint32();
         const slayerTaskMaxTicks = reader.getUint32();
         const slayerTaskActive = reader.getBoolean();
-        const slayerRealm = findItemFromNamespace(reader.getUint16());
+        const slayerRealm = findNamespaceFromItem(reader.getUint16());
         
-        const activeEvent = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const activeEvent = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
-        const eventPassives = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
-        const eventPassivesSelected = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const eventPassives = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
+        const eventPassivesSelected = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         const eventDungeonLength = reader.getUint32();
-        const activeEventAreas = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const activeEventAreas = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         const eventProgress = reader.getUint32();
-        const eventDungeonCompletions = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const eventDungeonCompletions = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         const eventStrongholdTier = reader.getUint8();
         // Combat Complete
         // Slayer Complete
@@ -372,7 +372,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidhp = reader.getUint32();
         const raidnextAction = reader.getUint8();
         const raidattackCount = reader.getUint32();
-        const raidnextAttack = findItemFromNamespace(reader.getUint16());
+        const raidnextAttack = findNamespaceFromItem(reader.getUint16());
         const raidisAttacking = reader.getBoolean();
         const raidfirstHit = reader.getBoolean();
         const raidactionTicksLeft = reader.getUint32();
@@ -384,7 +384,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidturnsTaken = reader.getUint32();
         const raidbufferedRegen = reader.getUint32();
         const raidactiveEffects = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     player: reader.getBoolean(),
@@ -404,22 +404,22 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         const raidfirstMiss = reader.getBoolean();
         const raidbarrier = reader.getUint32();
-        const raidMeleeStyle = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
-        const raidRangedStyle = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
-        const raidMagicStyle = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const raidMeleeStyle = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
+        const raidRangedStyle = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
+        const raidMagicStyle = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         const raidprayerPoints = reader.getUint32();
         const raidselectedEquipmentSet = reader.getUint16();
         const raidequipmentSets = reader.getArray((reader) => {
             return {
                 equipment: reader.getArray((reader) => {
-                    const id = findItemFromNamespace(reader.getUint16());
+                    const id = findNamespaceFromItem(reader.getUint16());
                     var stackable: string | undefined = undefined;
                     var qty: number | undefined = undefined;
                     if (reader.getBoolean()) {
-                        stackable = findItemFromNamespace(reader.getUint16());
+                        stackable = findNamespaceFromItem(reader.getUint16());
                         qty = reader.getUint32();
                     }
-                    const quickEquip = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+                    const quickEquip = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
                     return {
                         id: id,
                         stackable: stackable,
@@ -428,16 +428,16 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                     };
                 }),
                 spells: {
-                    spell: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined,
-                    aura: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined,
-                    curse: reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined
+                    spell: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                    aura: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                    curse: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined
                 },
-                prayers: reader.getArray((reader) => findItemFromNamespace(reader.getUint16()))
+                prayers: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
             }
         });
         const raidselectedFoodSlot = reader.getUint32();
         const raidmaxFoodSlot = reader.getUint32();
-        const raidfoodSlots = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const raidfoodSlots = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         
         const raidsummonTicksLeft = reader.getUint32();
         const raidsummonMaxTicks = reader.getUint32();
@@ -446,8 +446,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidunholyPrayerMultiplier = reader.getUint8();
         
         const raidAltAttacks = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
-            (reader) => reader.getArray((reader) => findItemFromNamespace(reader.getUint16()))
+            (reader) => findNamespaceFromItem(reader.getUint16()),
+            (reader) => reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
         );
         
         // Character Complete
@@ -457,7 +457,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidenemyHitpoints = reader.getUint32();
         const raidenemyAction = reader.getUint8();
         const raidenemyAttackCount = reader.getUint32();
-        const raidenemyNextAttack = findItemFromNamespace(reader.getUint16());
+        const raidenemyNextAttack = findNamespaceFromItem(reader.getUint16());
         const raidenemyAttacking = reader.getBoolean();
         const raidenemyFirstHit = reader.getBoolean();
         
@@ -471,7 +471,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidenemyTurnsTaken = reader.getUint32();
         const raidenemyBufferedRegen = reader.getUint32();
         const raidenemyActiveEffects = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     player: reader.getBoolean(),
@@ -497,7 +497,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         
         
-        const raidenemy = reader.getBoolean() ? findItemFromNamespace(reader.getUint16()) : undefined;
+        const raidenemy = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined;
         
         const goblin = reader.getBoolean() ? {
             name: reader.getString(),
@@ -509,7 +509,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             magic: reader.getUint32(),
             attackType: reader.getUint8(),
             image: reader.getInt8(),
-            passives: reader.getArray((reader) => findItemFromNamespace(reader.getUint16())),
+            passives: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
             corruption: reader.getUint32()
         } : undefined;
         // Enemy Complete
@@ -520,21 +520,21 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidfightSpawnMaxTicks = reader.getUint32();
         const raidfightSpawnActive = reader.getBoolean();
         const raidcombatActive = reader.getBoolean();
-        const raidcombatPassives = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getBoolean());
-        const raidPlayerModifiers = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => {
+        const raidcombatPassives = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getBoolean());
+        const raidPlayerModifiers = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => {
             var modifiers: Array<any> = [reader.getFloat64(), reader.getUint32()];
             for (var i = 1; i <= 256; i *= 2)
                 if (modifiers[1] & i) {
-                    modifiers.push(findItemFromNamespace(reader.getUint16()));
+                    modifiers.push(findNamespaceFromItem(reader.getUint16()));
                 }
             return modifiers;
         });
         
-        const raidEnemyModifiers = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => {
+        const raidEnemyModifiers = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => {
             var modifiers: Array<any> = [reader.getFloat64(), reader.getUint32()];
             for (var i = 1; i <= 256; i *= 2)
                 if (modifiers[1] & i) {
-                    modifiers.push(findItemFromNamespace(reader.getUint16()));
+                    modifiers.push(findNamespaceFromItem(reader.getUint16()));
                 }
             return modifiers;
         });
@@ -543,30 +543,30 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidDifficulty = reader.getUint8();
         
         
-        const raidlockedItems = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const raidlockedItems = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         
         const raidbankTabs = reader.getArray(
             (reader) => reader.getMap(
-                (reader) => findItemFromNamespace(reader.getUint16()),
+                (reader) => findNamespaceFromItem(reader.getUint16()),
                 (reader) => reader.getUint32()
             )
         );
-        const raiddefaultItemTabs = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint8())
-        const raidcustomSortOrder = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
-        const raidglowingItems = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
-        const raidtabIcons = reader.getMap((reader) => reader.getUint8(), (reader) => findItemFromNamespace(reader.getUint16()));
+        const raiddefaultItemTabs = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint8())
+        const raidcustomSortOrder = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
+        const raidglowingItems = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
+        const raidtabIcons = reader.getMap((reader) => reader.getUint8(), (reader) => findNamespaceFromItem(reader.getUint16()));
         
         const raidWave = reader.getUint32();
         const raidWaveProgress = reader.getUint32();
         const raidKillCount = reader.getUint32();
         const raidStart = reader.getFloat64();
-        const raidOwnedCrateItems = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const raidOwnedCrateItems = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         
-        const raidRandomModifiers = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => {
+        const raidRandomModifiers = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => {
             var modifiers: Array<any> = [reader.getFloat64(), reader.getUint32()];
             for (var i = 1; i <= 256; i *= 2)
                 if (modifiers[1] & i) {
-                    modifiers.push(findItemFromNamespace(reader.getUint16()));
+                    modifiers.push(findNamespaceFromItem(reader.getUint16()));
                 }
             return modifiers;
         });
@@ -574,27 +574,27 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         const raidSelectedPositiveModifier = reader.getBoolean();
         const raidItemWeapons = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemArmour = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemAmmo = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemRunes = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemFoods = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemPassives = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => { return { qty: reader.getUint32(), alt: reader.getBoolean()} }
         );
         const raidItemCategory = reader.getUint8();
@@ -606,9 +606,9 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const raidHistories = reader.getArray((reader) => {
             return {
                 skills: reader.getArray((reader) => reader.getUint32()),
-                equipment: reader.getArray((reader) => findItemFromNamespace(reader.getUint16())),
+                equipment: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
                 ammo: reader.getUint32(),
-                inventories: reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32()),
+                inventories: reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32()),
                 food: reader.getUint16(),
                 foodQty: reader.getUint32(),
                 wave: reader.getUint32(),
@@ -625,20 +625,20 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         
         // Minibar Start
-        const MinibarItems = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getArray((reader) => findItemFromNamespace(reader.getUint16())));
+        const MinibarItems = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())));
         // Minibar Complete
         
         // Pets Start
-        const petList = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const petList = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         // Pets Complete
         
         // Shop Start
-        const shopItems = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const shopItems = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         const purchaseQty = reader.getFloat64();
         // Shop Complete
         
         // Item Charges Start
-        const itemCharges = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const itemCharges = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         // Item Charges Complete
         
         const tutorialComplete = reader.getBoolean();
@@ -649,8 +649,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         
         // Start Potions
-        const potionList = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => { return {item: findItemFromNamespace(reader.getUint16()), charges: reader.getUint32()}});
-        const potionReuse = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const potionList = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => { return {item: findNamespaceFromItem(reader.getUint16()), charges: reader.getUint32()}});
+        const potionReuse = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         // End Potions
         
         // Start Stats
@@ -677,7 +677,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const agilityStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
         const summoningStats = reader.getMap((reader) => reader.getUint32(), (reader) => reader.getFloat64());
         const itemsStats = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => reader.getMap(
                 (reader) => reader.getUint32(),
                 (reader) => reader.getFloat64()
@@ -685,7 +685,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         );
         
         const monstersStats = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => reader.getMap(
                 (reader) => reader.getUint32(),
                 (reader) => reader.getFloat64()
@@ -756,7 +756,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const settingshowTierIIIPotions = reader.getBoolean();
         const settingshowTierIVPotions = reader.getBoolean();
         const settingshowNeutralAttackModifiers = reader.getBoolean();
-        const settingdefaultPageOnLoad = reader.getUint16();
+        const settingdefaultPageOnLoad = findNamespaceFromItem(reader.getUint16());
         const settingformatNumberSetting = reader.getUint8();
         const settingbankSortOrder = reader.getUint8();
         const settingcolourBlindMode = reader.getUint8();
@@ -837,7 +837,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         
         // Start Skills
-        const skills = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader, k) => {
+        const skills = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader, k) => {
             const skillSize = reader.getUint32();
             const endOffset = skillSize + reader.offset;
             var skill = {
@@ -863,20 +863,19 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             var remaining = endOffset - reader.offset;
             console.log(k)
             if (remaining > 0) {
-                const skillName = k;
-                if (!["melvorD:Township", "melvorItA:Corruption", "melvorAoD:Cartography"].includes(skillName)) {
+                if (!["melvorD:Township", "melvorItA:Corruption", "melvorAoD:Cartography"].includes(k)) {
                     // @ts-ignore
                     skill.mastery = {
                         actionMastery: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getFloat64()    
                         ),
                         masteryPool: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getFloat64()    
                         ),
                     }
-                    if (skillName != "melvorD:Farming") {
+                    if (k != "melvorD:Farming") {
                         // @ts-ignore
                         skill.active = reader.getBoolean(),
                         // @ts-ignore
@@ -887,15 +886,15 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                         }
                     }
                 }
-                if (["melvorD:Herblore", "melvorD:Crafting", "melvorD:Runecrafting", "melvorD:Smithing"].includes(skillName)) {
+                if (["melvorD:Herblore", "melvorD:Crafting", "melvorD:Runecrafting", "melvorD:Smithing"].includes(k)) {
                     skill.skillSpecific = {
-                        recipe: reader.getBoolean() ? reader.getUint16() : undefined
+                        recipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined
                     }
-                } else if (skillName == "melvorAoD:Archaeology") {
+                } else if (k == "melvorAoD:Archaeology") {
                     skill.skillSpecific = {
-                        digsite: reader.getBoolean() ? reader.getUint16() : undefined,
+                        digsite: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         digsites: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     maps: reader.getArray(
@@ -907,11 +906,11 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                                                 artefactValuesSmall: reader.getUint16(),
                                                 artefactValuesMedium: reader.getUint16(),
                                                 artefactValuesLarge: reader.getUint16(),
-                                                refinements: reader.getMap((reader) => reader.getUint16(), (reader) => {
-                                                    var modifiers = [reader.getFloat64(), reader.getUint32()];
+                                                refinements: reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => {
+                                                    var modifiers: Array<any> = [reader.getFloat64(), reader.getUint32()];
                                                     for (var i = 1; i <= 256; i *= 2)
                                                         if (modifiers[1] & i) {
-                                                            modifiers.push(reader.getUint16());
+                                                            modifiers.push(findNamespaceFromItem(reader.getUint16()));
                                                         }
                                                     return modifiers;
                                                 })
@@ -919,35 +918,35 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                                         }
                                     ),
                                     selectedMap: reader.getInt8(),
-                                    selectedTools: reader.getArray((reader) => reader.getUint16()),
+                                    selectedTools: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
                                     selectedUpgrade: reader.getUint8()
                                 }
                             }
                         ),
                         museum: {
-                            items: reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()),
-                            donated: reader.getArray((reader) => reader.getUint16())
+                            items: reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getBoolean()),
+                            donated: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
                         },
-                        hiddenDigsites: reader.getArray((reader) => reader.getUint16())
+                        hiddenDigsites: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
                     }
-                } else if (skillName == "melvorD:Agility") {
+                } else if (k == "melvorD:Agility") {
                     skill.skillSpecific = {
                         activeObstacle: reader.getInt16(),
                         obstacleBuildCount: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getUint32()
                         ),
                         course: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     builtObstacles: reader.getMap(
                                         (reader) => reader.getUint8(),
-                                        (reader) => reader.getUint16()
+                                        (reader) => findNamespaceFromItem(reader.getUint16())
                                     ),
                                     builtPillars: reader.getMap(
                                         (reader) => reader.getUint8(),
-                                        (reader) => reader.getUint16()
+                                        (reader) => findNamespaceFromItem(reader.getUint16())
                                     ),
                                     blueprints: reader.getMap(
                                         (reader) => reader.getUint8(),
@@ -956,11 +955,11 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                                                 name: reader.getString(),
                                                 obstacles: reader.getMap(
                                                     (reader) => reader.getUint8(),
-                                                    (reader) => reader.getUint16()
+                                                    (reader) => findNamespaceFromItem(reader.getUint16())
                                                 ),
                                                 pillars: reader.getMap(
                                                     (reader) => reader.getUint8(),
-                                                    (reader) => reader.getUint16()
+                                                    (reader) => findNamespaceFromItem(reader.getUint16())
                                                 )
                                             }
                                         }
@@ -969,19 +968,19 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         )
                     }
-                } else if (skillName == "melvorD:Magic") {
+                } else if (k == "melvorD:Magic") {
                     skill.skillSpecific = {
-                        spell: reader.getBoolean() ? reader.getUint16() : undefined,
-                        conversionItem: reader.getBoolean() ? reader.getUint16() : undefined,
-                        selectedRecipe: reader.getBoolean() ? reader.getUint16() : undefined
+                        spell: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        conversionItem: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        selectedRecipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined
                     }
-                } else if (skillName == "melvorD:Astrology") {
+                } else if (k == "melvorD:Astrology") {
                     skill.skillSpecific = {
-                        studied: reader.getBoolean() ? reader.getUint16() : undefined,
-                        explored: reader.getBoolean() ? reader.getUint16() : undefined,
+                        studied: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        explored: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         actions: reader.getArray((reader) => {
                             return {
-                                recipie: reader.getUint16(),
+                                recipie: findNamespaceFromItem(reader.getUint16()),
                                 standardModsBought: reader.getArray((reader) => reader.getUint8()),
                                 uniqueModsBought: reader.getArray((reader) => reader.getUint8()),
                                 abyssalModsBought: reader.getArray((reader) => reader.getUint8())
@@ -989,17 +988,17 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                         }),
                         dummyRecipies: reader.getArray((reader) => {
                             return {
-                                recipie: reader.getUint16(),
+                                recipie: findNamespaceFromItem(reader.getUint16()),
                                 standardModsBought: reader.getArray((reader) => reader.getUint8()),
                                 uniqueModsBought: reader.getArray((reader) => reader.getUint8()),
                                 abyssalModsBought: reader.getArray((reader) => reader.getUint8())
                             }
                         })
                     }
-                } else if (skillName == "melvorD:Cartography") {
+                } else if (k == "melvorAoD:Cartography") {
                     skill.skillSpecific = {
                         worldMaps: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     worldMap: reader.getMap(
@@ -1013,10 +1012,10 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                                     position: [reader.getInt16(), reader.getInt16()],
                                     filterSettings: {
                                         markerSettings: reader.getArray((reader) => reader.getBoolean()),
-                                        hiddenFastTravelGroups: reader.getArray((reader) => reader.getUint16())
+                                        hiddenFastTravelGroups: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
                                     },
                                     pois: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => {
                                             return {
                                                 discovered: reader.getBoolean(),
@@ -1027,7 +1026,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                                         }
                                     ),
                                     bonus: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => reader.getBoolean()
                                     )
                                 }
@@ -1046,24 +1045,24 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                     },
                     // @ts-ignore
                     skill.skillSpecific.map = reader.getBoolean() ? {
-                        activeMap: reader.getUint16(),
+                        activeMap: findNamespaceFromItem(reader.getUint16()),
                         surveyQueue: reader.getArray((reader) => [reader.getInt16(), reader.getInt16()]),
                         autoSurvey: reader.getBoolean() ? [reader.getInt16(), reader.getInt16()] : undefined
                     } : undefined,
                     // @ts-ignore
-                    skill.skillSpecific.event = reader.getBoolean() ? reader.getUint16() : undefined,
+                    skill.skillSpecific.event = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                     // @ts-ignore
-                    skill.skillSpecific.paperRecipe = reader.getBoolean() ? reader.getUint16() : undefined,
+                    skill.skillSpecific.paperRecipe = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                     // @ts-ignore
-                    skill.skillSpecific.digSite = reader.getBoolean() ? reader.getUint16() : undefined
-                } else if (skillName == "melvorD:Cooking") {
+                    skill.skillSpecific.digSite = reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined
+                } else if (k == "melvorD:Cooking") {
                     skill.skillSpecific = {
                         selectedRecipies: reader.getMap(
-                            (reader) => reader.getUint16(),
-                            (reader) => reader.getUint16()
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
+                            (reader) => findNamespaceFromItem(reader.getUint16())
                         ),
                         passiveCookTimers: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     ticksLeft: reader.getUint32(),
@@ -1073,7 +1072,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         ),
                         stockpileItems: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     item: reader.getUint16(),
@@ -1082,32 +1081,32 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         ),
                         // @ts-ignore
-                        activeCategory: skill.active ? reader.getUint16() : undefined
+                        activeCategory: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined
                     }
-                } else if (skillName == "melvorD:Farming") {
+                } else if (k == "melvorD:Farming") {
                     skill.skillSpecific = {
                         plots: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     state: reader.getUint8(),
-                                    planted: reader.getBoolean() ? reader.getUint16() : undefined,
-                                    compost: reader.getBoolean() ? reader.getUint16() : undefined,
+                                    planted: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                                    compost: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                                     compostLevel: reader.getUint8(),
-                                    selected: reader.getBoolean() ? reader.getUint16() : undefined,
+                                    selected: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                                     growthTime: reader.getFloat64()
                                 }
                             }
                         ),
                         dummyPlots: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     state: reader.getUint8(),
-                                    planted: reader.getBoolean() ? reader.getUint16() : undefined,
-                                    compost: reader.getBoolean() ? reader.getUint16() : undefined,
+                                    planted: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                                    compost: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                                     compostLevel: reader.getUint8(),
-                                    selected: reader.getBoolean() ? reader.getUint16() : undefined,
+                                    selected: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                                     growthTime: reader.getFloat64()
                                 }
                             }
@@ -1122,59 +1121,59 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         )
                     }
-                } else if (skillName == "melvorD:Firemaking") {
+                } else if (k == "melvorD:Firemaking") {
                     skill.skillSpecific = {
                         bonfireTimer: {
                             ticksLeft: reader.getUint32(),
                             maxTicks: reader.getUint32(),
                             active: reader.getBoolean()
                         },
-                        recipe: reader.getBoolean() ? reader.getUint16() : undefined,
-                        bonfireRecipe: reader.getBoolean() ? reader.getUint16() : undefined,
+                        recipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        bonfireRecipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         oilTimer: {
                             ticksLeft: reader.getUint32(),
                             maxTicks: reader.getUint32(),
                             active: reader.getBoolean()
                         },
-                        oiledLogRecipe: reader.getBoolean() ? reader.getUint16() : undefined,
-                        oilRecipe: reader.getBoolean() ? reader.getUint16() : undefined,
+                        oiledLogRecipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        oilRecipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                     }
-                } else if (skillName == "melvorD:Fishing") {
+                } else if (k == "melvorD:Fishing") {
                     skill.skillSpecific = {
                         secretAreaUnlocked: reader.getBoolean(),
                         // @ts-ignore
-                        area: skill.active ? reader.getUint16() : undefined,
+                        area: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         selectedAreaFish: reader.getMap(
-                            (reader) => reader.getUint16(),
-                            (reader) => reader.getUint16()
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
+                            (reader) => findNamespaceFromItem(reader.getUint16())
                         ),
-                        hiddenAreas: reader.getArray((reader) => reader.getUint16()),
+                        hiddenAreas: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
                         contest: reader.getBoolean() ? {
                             completion: reader.getArray((reader) => reader.getBoolean()),
                             mastery: reader.getArray((reader) => reader.getBoolean())
                         } : undefined
                     }
-                } else if (skillName == "melvorD:Fletching") {
+                } else if (k == "melvorD:Fletching") {
                     skill.skillSpecific = {
-                        recipe: reader.getBoolean() ? reader.getUint16() : undefined,
+                        recipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         altRecipies: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getUint16()
                         )
                     }
-                } else if (skillName == "melvorD:Summoning") {
+                } else if (k == "melvorD:Summoning") {
                     skill.skillSpecific = {
-                        recipe: reader.getBoolean() ? reader.getUint16() : undefined,
+                        recipe: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         selectedNonShardCosts: reader.getMap(
-                            (reader) => reader.getUint16(),
-                            (reader) => reader.getUint16()
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
+                            (reader) => findNamespaceFromItem(reader.getUint16())
                         ),
                         marksUnlocked: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getUint8()
                         )
                     }
-                } else if (skillName == "melvorD:Thieving") {
+                } else if (k == "melvorD:Thieving") {
                     skill.skillSpecific = {
                         stunTimer: {
                             ticksLeft: reader.getUint32(),
@@ -1182,26 +1181,26 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             active: reader.getBoolean()
                         },
                         // @ts-ignore
-                        area: skill.active ? reader.getUint16() : undefined,
+                        area: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         // @ts-ignore
-                        npc: skill.active ? reader.getUint16() : undefined,
-                        hiddenAreas: reader.getArray((reader) => reader.getUint16()),
+                        npc: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                        hiddenAreas: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
                         stunState: reader.getUint8()
                     }
-                } else if (skillName == "melvorD:Township") {
+                } else if (k == "melvorD:Township") {
                     skill.skillSpecific = {
                         townData: {
-                            worship: reader.getUint16(),
+                            worship: findNamespaceFromItem(reader.getUint16()),
                             created: reader.getBoolean(),
                             seasonTicksRemaining: reader.getInt16(),
-                            season: reader.getBoolean() ? reader.getUint16() : undefined,
-                            previousSeason: reader.getBoolean() ? reader.getUint16() : undefined,
+                            season: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
+                            previousSeason: reader.getBoolean() ? findNamespaceFromItem(reader.getUint16()) : undefined,
                             health: reader.getInt8(),
                             souls: reader.getInt32(),
                             abyssalWaveTicksRemaining: reader.getInt16()
                         },
                         resources: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     qty: reader.getFloat64(),
@@ -1210,7 +1209,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         ),
                         dummyResources: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     qty: reader.getFloat64(),
@@ -1219,30 +1218,30 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         ),
                         biomes: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     buildingsBuilt: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => reader.getUint32()
                                     ),
                                     buildingEfficiency: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => reader.getUint32()
                                     )
                                 }
                             }
                         ),
                         dummyBiomes: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     buildingsBuilt: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => reader.getUint32()
                                     ),
                                     buildingEfficiency: reader.getMap(
-                                        (reader) => reader.getUint16(),
+                                        (reader) => findNamespaceFromItem(reader.getUint16()),
                                         (reader) => reader.getUint32()
                                     )
                                 }
@@ -1250,12 +1249,12 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                         ),
                         legacyTicks: reader.getUint32(),
                         totalTicks: reader.getUint32(),
-                        tasksCompleted: reader.getArray((reader) => reader.getUint16()),
+                        tasksCompleted: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16())),
                         townshipConverted: reader.getBoolean(),
                         casualTasks: {
                             completed: reader.getUint32(),
                             currentCasualTasks: reader.getMap(
-                                (reader) => reader.getUint16(),
+                                (reader) => findNamespaceFromItem(reader.getUint16()),
                                 (reader) => reader.getArray((reader) => reader.getFloat64())
                             ),
                             newTaskTimer: {
@@ -1277,16 +1276,16 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             active: reader.getBoolean()
                         }
                     }
-                } else if (skillName == "melvorD:Woodcutting") {
+                } else if (k == "melvorD:Woodcutting") {
                     skill.skillSpecific = {
-                        activeTrees: reader.getArray((reader) => reader.getUint16())
+                        activeTrees: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
                     }
-                } else if (skillName == "melvorD:Mining") {
+                } else if (k == "melvorD:Mining") {
                     skill.skillSpecific = {
                         // @ts-ignore
-                        selectedRock: skill.active ? reader.getUint16() : undefined,
+                        selectedRock: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         rocks: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     isRespawning: reader.getBoolean(),
@@ -1296,7 +1295,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             }
                         ),
                         rockRespawnTimers: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     ticksLeft: reader.getUint32(),
@@ -1311,20 +1310,20 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                             active: reader.getBoolean()
                         }
                     }
-                } else if (skillName == "melvorItA:Corruption") {
+                } else if (k == "melvorItA:Corruption") {
                     skill.skillSpecific = {
                         corruptionEffects: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => reader.getBoolean()
                         ),
-                        corruptionUnlockedRows: reader.getArray((reader) => reader.getUint16())
+                        corruptionUnlockedRows: reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()))
                     }
-                } else if (skillName == "melvorItA:Harvesting") {
+                } else if (k == "melvorItA:Harvesting") {
                     skill.skillSpecific = {
                         // @ts-ignore
-                        selectedVein: skill.active ? reader.getUint16() : undefined,
+                        selectedVein: skill.active ? findNamespaceFromItem(reader.getUint16()) : undefined,
                         veins: reader.getMap(
-                            (reader) => reader.getUint16(),
+                            (reader) => findNamespaceFromItem(reader.getUint16()),
                             (reader) => {
                                 return {
                                     currentIntensity: reader.getUint32(),
@@ -1368,7 +1367,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const completion = reader.getString();
         
         const keyBindings = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => reader.getArray(
                 (reader) => {
                     if (reader.getBoolean()) {
@@ -1390,7 +1389,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         const clueHuntStep = reader.getInt8();
         
         const currencies = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     qty: reader.getFloat64(),
@@ -1399,7 +1398,7 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                         (reader) => reader.getFloat64()
                     ),
                     currencySkills: reader.getMap(
-                        (reader) => findItemFromNamespace(reader.getUint16()),
+                        (reader) => findNamespaceFromItem(reader.getUint16()),
                         (reader) => reader.getMap(
                             (reader) => reader.getUint32(),
                             (reader) => reader.getFloat64()
@@ -1412,11 +1411,11 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
         
         
         
-        const areaCompletions = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
-        const strongholdCompletions = reader.getMap((reader) => findItemFromNamespace(reader.getUint16()), (reader) => reader.getUint32());
+        const areaCompletions = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
+        const strongholdCompletions = reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getUint32());
         
         const levelCapIncreases = reader.getMap(
-            (reader) => findItemFromNamespace(reader.getUint16()),
+            (reader) => findNamespaceFromItem(reader.getUint16()),
             (reader) => {
                 return {
                     given: reader.getArray((reader) => reader.getUint16()),
@@ -1425,13 +1424,13 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             }
         );
         
-        const levelCapIncreasesSelected = reader.getArray((reader) => findItemFromNamespace(reader.getUint16()));
+        const levelCapIncreasesSelected = reader.getArray((reader) => findNamespaceFromItem(reader.getUint16()));
         
         const levelCapIncreasesBought = reader.getUint16();
         const abyssalLevelCapIncreasesBought = reader.getUint16();
-        const realm = findItemFromNamespace(reader.getUint16());
+        const realm = findNamespaceFromItem(reader.getUint16());
         
-        return {
+        const save = {
             saveData: {
                 header: {
                     saveVersion: headerSaveVersion,
@@ -1868,6 +1867,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
             },
             initialSize: reader.dataView.byteLength
         };
+        console.log(save);
+        return save;
     } catch (e: any) {
         return undefined;
     }

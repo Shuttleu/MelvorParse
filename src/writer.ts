@@ -2,118 +2,124 @@ import { zlibSync, strFromU8 } from 'fflate';
 import { saveData } from './type';
 
 export class Writer {
-    data: ArrayBuffer;
-    dataView: DataView;
-    offset = 0;
+    data: Array<ArrayBuffer>;
+    dataView: Array<DataView>;
+    offset = [0, 0];
 
     constructor (initialSize: number) {
-        this.data = new ArrayBuffer(initialSize);
-        this.dataView = new DataView(this.data);
+        this.data = [new ArrayBuffer(initialSize), new ArrayBuffer(initialSize)];
+        this.dataView = [new DataView(this.data[0]), new DataView(this.data[1])];
     }
 
-    checkDataViewSize(sizeOfData: number) {
-        if (this.dataView.byteLength < (this.offset + sizeOfData)) {
-            var newBuffer = new ArrayBuffer(this.dataView.byteLength + sizeOfData);
-            new Uint8Array(newBuffer).set(new Uint8Array(this.data));
-            this.data = newBuffer;
-            this.dataView = new DataView(this.data);
+    checkDataViewSize(sizeOfData: number, whichDataset = 0) {
+        if (this.dataView[whichDataset].byteLength < (this.offset[whichDataset] + sizeOfData)) {
+            var newBuffer = new ArrayBuffer(this.dataView[whichDataset].byteLength + sizeOfData);
+            new Uint8Array(newBuffer).set(new Uint8Array(this.data[whichDataset]));
+            this.data[whichDataset] = newBuffer;
+            this.dataView[whichDataset] = new DataView(this.data[whichDataset]);
         }
     }
 
     generateSaveString() {
-        const data = new Uint8Array(this.dataView.buffer, 0, this.offset)
+        var newBuffer = new ArrayBuffer(this.offset[0] + this.offset[1])
+        new Uint8Array(newBuffer).set(new Uint8Array(this.data[1], 0, this.offset[1]))
+        new Uint8Array(newBuffer).set(new Uint8Array(this.data[0], 0, this.offset[0]), this.offset[1])
+
+        const data = new Uint8Array(newBuffer, 0, this.offset[0] + this.offset[1])
         return btoa(strFromU8(zlibSync(data), true));
     }
 
-    setStaticString(value: string) {
+    setStaticString(value: string, whichDataset = 0) {
         const stringLength = value.length;
         const encoder = new TextEncoder()
         const encodedString = encoder.encode(value);
         for (var i = 0; i < stringLength; i++)
-            this.setUint8(encodedString[i])
+            this.setUint8(encodedString[i], whichDataset)
     }
 
-    setString(value: string) {
+    setString(value: string, whichDataset = 0) {
         const stringLength = value.length;
-        this.setUint32(stringLength);
+        this.setUint32(stringLength, whichDataset);
         const encoder = new TextEncoder()
         const encodedString = encoder.encode(value);
         for (var i = 0; i < stringLength; i++)
-            this.setUint8(encodedString[i])
+            this.setUint8(encodedString[i], whichDataset)
     }
 
-    setInt8(value: number) {
+    setInt8(value: number, whichDataset = 0) {
         this.checkDataViewSize(Int8Array.BYTES_PER_ELEMENT);
-        this.dataView.setInt8(this.offset, value);
-        this.offset += Int8Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setInt8(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Int8Array.BYTES_PER_ELEMENT;
     }
-    setUint8(value: number) {
+    setUint8(value: number, whichDataset = 0) {
         this.checkDataViewSize(Uint8Array.BYTES_PER_ELEMENT);
-        this.dataView.setUint8(this.offset, value);
-        this.offset += Uint8Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setUint8(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Uint8Array.BYTES_PER_ELEMENT;
     }
 
-    setInt16(value: number) {
+    setInt16(value: number, whichDataset = 0) {
         this.checkDataViewSize(Int16Array.BYTES_PER_ELEMENT);
-        this.dataView.setInt16(this.offset, value);
-        this.offset += Int16Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setInt16(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Int16Array.BYTES_PER_ELEMENT;
     }
-    setUint16(value: number) {
+    setUint16(value: number, whichDataset = 0) {
         this.checkDataViewSize(Uint16Array.BYTES_PER_ELEMENT);
-        this.dataView.setUint16(this.offset, value);
-        this.offset += Uint16Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setUint16(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Uint16Array.BYTES_PER_ELEMENT;
     }
-    setInt32(value: number) {
+    setInt32(value: number, whichDataset = 0) {
         this.checkDataViewSize(Int32Array.BYTES_PER_ELEMENT);
-        this.dataView.setInt32(this.offset, value);
-        this.offset += Int32Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setInt32(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Int32Array.BYTES_PER_ELEMENT;
     }
 
-    setUint32(value: number) {
+    setUint32(value: number, whichDataset = 0) {
         this.checkDataViewSize(Uint32Array.BYTES_PER_ELEMENT);
-        this.dataView.setUint32(this.offset, value);
-        this.offset += Uint32Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setUint32(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Uint32Array.BYTES_PER_ELEMENT;
     }
 
-    setBoolean(value: boolean) {
-        this.setUint8(value ? 1 : 0);
+    setBoolean(value: boolean, whichDataset = 0) {
+        this.setUint8(value ? 1 : 0, whichDataset);
     }
 
-    setFloat64(value: number) {
+    setFloat64(value: number, whichDataset = 0) {
         this.checkDataViewSize(Float64Array.BYTES_PER_ELEMENT);
-        this.dataView.setFloat64(this.offset, value);
-        this.offset += Float64Array.BYTES_PER_ELEMENT;
+        this.dataView[whichDataset].setFloat64(this.offset[whichDataset], value);
+        this.offset[whichDataset] += Float64Array.BYTES_PER_ELEMENT;
     }
-    setFixedLengthBuffer(value: Uint8Array) {
+    setFixedLengthBuffer(value: Uint8Array, whichDataset = 0) {
         const arraySize = value.length;
         for (var i = 0; i < arraySize; i++)
-            this.setUint8(value[i])
+            this.setUint8(value[i], whichDataset)
     }
 
-    setArray(array: Array<any>, setValue: (writer: Writer, value: any) => void) {
+    setArray(array: Array<any>, setValue: (writer: Writer, value: any, whichDataset: number) => void, whichDataset = 0) {
         const arraySize = array.length;
-        this.setUint32(arraySize);
+        this.setUint32(arraySize, whichDataset);
         array.forEach((value) => {
-            setValue(this, value)
+            setValue(this, value, whichDataset)
         })
     }
 
-    setSet(set: Set<any>, setValue: (writer: Writer, value: any) => void) {
+    setSet(set: Set<any>, setValue: (writer: Writer, value: any, whichDataset: number) => void, whichDataset = 0) {
         const array = Array.from(set);
         const arraySize = array.length;
-        this.setUint32(arraySize);
+        this.setUint32(arraySize, whichDataset);
         set.forEach((value) => {
-            setValue(this, value)
+            setValue(this, value, whichDataset)
         })
     }
 
-    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any) => void, setValue: (writer: Writer, value: any, key: string) => void) {
+    setMap(map: Map<any, any>, setKey: (writer: Writer, key: any, whichDataset: number) => void, setValue: (writer: Writer, value: any, key: string, whichDataset: number) => void, whichDataset = 0) {
+        if (whichDataset == 1)
+            console.log(map);
         const mapSize = map.size;
-        this.setUint32(mapSize);
+        this.setUint32(mapSize, whichDataset);
         map.forEach((value, key) => {
-            setKey(this, key);
+            setKey(this, key, whichDataset);
             const tempKey = typeof key === "string" ? key : ""
-            setValue(this, value, tempKey);
+            setValue(this, value, tempKey, whichDataset);
         })
     }
 }
@@ -122,68 +128,63 @@ export function parseSave(save: saveData, initialSize: number): string {
 
 
     var writer = new Writer(initialSize);
-    writer.setStaticString("melvor");
-    const headerSizeLocation = writer.offset;
-    writer.setUint32(0);
-    writer.setMap(save.header.namespaces,
-        (writer, key) => writer.setString(key), 
-        (writer, value) => writer.setMap(value,
-            (writer, key) => writer.setString(key),
-            (writer, value) => writer.setUint16(value)
-        )
-    );
-    writer.setUint32(130);
-    writer.setString(save.header.saveName);
-    writer.setString(save.header.gameMode);
-    writer.setUint16(save.header.skillLevel);
-    writer.setFloat64(save.header.gp);
-    writer.setBoolean(save.header.activeTraining);
-    writer.setString(save.header.activeTrainingName);
-    writer.setFloat64(save.header.tickTime);
-    writer.setFloat64(save.header.saveTime);
-    writer.setSet(save.header.activeNamespaces, (writer, value) => writer.setString(value));
-    writer.setBoolean(save.header.mods != undefined)
-    if (save.header.mods != undefined) {
-        writer.setString(save.header.mods.profileId),
-        writer.setString(save.header.mods.profileName),
-        writer.setSet(save.header.mods.mods, (writer, value) => writer.setUint32(value))
+
+    var namespaces: Map<string, Map<string, number>> = new Map()
+    var namespaceCount = 0;
+
+    function findItemFromNamespace(item: string) {
+        const namespaceItem = item.split(":");
+        var namespace = namespaces.get(namespaceItem[0]);
+        
+        if (namespace == undefined){
+            namespace = new Map();
+            namespaces.set(namespaceItem[0], namespace);
+        }
+        var num = namespace.get(namespaceItem[1]);
+        if (num == undefined){
+            namespace.set(namespaceItem[1], namespaceCount);
+            namespaceCount += 1;
+            
+            return namespaceCount - 1;
+        }
+        return num;
     }
-    writer.dataView.setUint32(headerSizeLocation, writer.offset - headerSizeLocation - 4);
-    const bodySizeLocation = writer.offset;
+
+    const bodySizeLocation = writer.offset[0];
     writer.setUint32(0);
     writer.setFloat64(save.tickTime);
     writer.setFloat64(save.saveTime);
     writer.setBoolean(save.activeAction != undefined);
     if (save.activeAction != undefined)
-        writer.setUint16(save.activeAction);
+        writer.setUint16(findItemFromNamespace(save.activeAction));
     writer.setBoolean(save.pausedAction != undefined);
     if (save.pausedAction)
-        writer.setUint16(save.pausedAction);
+        writer.setUint16(findItemFromNamespace(save.pausedAction));
     writer.setBoolean(save.paused);
     writer.setBoolean(save.merchantsPermitRead);
-    writer.setUint16(save.gameMode);
+    writer.setUint16(findItemFromNamespace(save.gameMode));
     writer.setString(save.characterName);
-    writer.setArray(save.bank.lockedItems, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.bank.lockedItems, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setArray(save.bank.tabs,
         (writer, value) => writer.setMap(value,
-            (writer, key) => writer.setUint16(key),
+            (writer, key) => writer.setUint16(findItemFromNamespace(key)),
             (writer, value) => writer.setUint32(value)
         )
     );
     writer.setMap(save.bank.defaultTabs,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint8(value)
     );
-    writer.setArray(save.bank.sortOrder, (writer, value) => writer.setUint16(value));
-    writer.setArray(save.bank.glowing, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.bank.sortOrder, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
+    writer.setArray(save.bank.glowing, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setMap(save.bank.icons,
         (writer, key) => writer.setUint8(key),
-        (writer, value) => writer.setUint16(value)
+        (writer, value) => writer.setUint16(findItemFromNamespace(value))
     );
     writer.setUint32(save.combat.player.character.hp);
     writer.setUint8(save.combat.player.character.nextAction);
     writer.setUint32(save.combat.player.character.attackCount);
-    writer.setUint16(save.combat.player.character.nextAttack);
+    writer.setUint16(findItemFromNamespace(save.combat.player.character.nextAttack));
     writer.setBoolean(save.combat.player.character.isAttacking);
     writer.setBoolean(save.combat.player.character.firstHit);
     writer.setUint32(save.combat.player.character.actionTimer.ticksLeft);
@@ -195,7 +196,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.combat.player.character.turnsTaken);
     writer.setUint32(save.combat.player.character.bufferedRegen);
     writer.setMap(save.combat.player.character.activeEffects,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
                 writer.setBoolean(value.player),
                 writer.setUint8(value.type),
@@ -215,40 +216,40 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.combat.player.character.barrier);
     writer.setBoolean(save.combat.player.meleeType != undefined);
     if (save.combat.player.meleeType != undefined)
-        writer.setUint16(save.combat.player.meleeType);
+        writer.setUint16(findItemFromNamespace(save.combat.player.meleeType));
     writer.setBoolean(save.combat.player.rangedType != undefined);
     if (save.combat.player.rangedType != undefined)
-        writer.setUint16(save.combat.player.rangedType);
+        writer.setUint16(findItemFromNamespace(save.combat.player.rangedType));
     writer.setBoolean(save.combat.player.magicType != undefined);
     if (save.combat.player.magicType != undefined)
-        writer.setUint16(save.combat.player.magicType);
+        writer.setUint16(findItemFromNamespace(save.combat.player.magicType));
     writer.setUint32(save.combat.player.prayerPoints);
     writer.setUint16(save.combat.player.equipmentSet);
     writer.setArray(save.combat.player.equipmentSets,
         (writer, value) => {
             writer.setArray(value.equipment, (writer, value) => {
-                writer.setUint16(value.id);
+                writer.setUint16(findItemFromNamespace(value.id));
                 writer.setBoolean(value.stackable != undefined)
                 if (value.stackable != undefined) {
-                    writer.setUint16(value.stackable);
+                    writer.setUint16(findItemFromNamespace(value.stackable));
                     writer.setUint32(value.qty);
                 }
-                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(value));
+                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
             }),
             writer.setBoolean(value.spells.spell != undefined);
             if (value.spells.spell != undefined)
-                writer.setUint16(value.spells.spell);
+                writer.setUint16(findItemFromNamespace(value.spells.spell));
             writer.setBoolean(value.spells.aura != undefined);
             if (value.spells.aura != undefined)
-                writer.setUint16(value.spells.aura);
+                writer.setUint16(findItemFromNamespace(value.spells.aura));
             writer.setBoolean(value.spells.curse != undefined);
             if (value.spells.curse != undefined)
-                writer.setUint16(value.spells.curse);
-            writer.setArray(value.prayers, (writer, value) => writer.setUint16(value))
+                writer.setUint16(findItemFromNamespace(value.spells.curse));
+            writer.setArray(value.prayers, (writer, value) => writer.setUint16(findItemFromNamespace(value)))
     });
     writer.setUint32(save.combat.player.foodSlot);
     writer.setUint32(save.combat.player.maxFoodSlot);
-    writer.setArray(save.combat.player.foodSlots, (writer, value) => { writer.setUint16(value[0]), writer.setUint32(value[1])});
+    writer.setMap(save.combat.player.foodSlots, (writer, key) => writer.setUint16(findItemFromNamespace(key)), (writer, value) => writer.setUint32(value));
     writer.setUint32(save.combat.player.summoningTimer.ticksLeft);
     writer.setUint32(save.combat.player.summoningTimer.maxTicks);
     writer.setBoolean(save.combat.player.summoningTimer.active);
@@ -257,7 +258,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.combat.enemy.character.hp);
     writer.setUint8(save.combat.enemy.character.nextAction);
     writer.setUint32(save.combat.enemy.character.attackCount);
-    writer.setUint16(save.combat.enemy.character.nextAttack);
+    writer.setUint16(findItemFromNamespace(save.combat.enemy.character.nextAttack));
     writer.setBoolean(save.combat.enemy.character.isAttacking);
     writer.setBoolean(save.combat.enemy.character.firstHit);
     writer.setUint32(save.combat.enemy.character.actionTimer.ticksLeft);
@@ -269,7 +270,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.combat.enemy.character.turnsTaken);
     writer.setUint32(save.combat.enemy.character.bufferedRegen);
     writer.setMap(save.combat.enemy.character.activeEffects,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
                 writer.setBoolean(value.player),
                 writer.setUint8(value.type),
@@ -291,71 +292,71 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint8(save.combat.enemy.attackType);
     writer.setBoolean(save.combat.enemy.enemy != undefined);
     if (save.combat.enemy.enemy != undefined)
-        writer.setUint16(save.combat.enemy.enemy);
+        writer.setUint16(findItemFromNamespace(save.combat.enemy.enemy));
     writer.setBoolean(save.combat.enemy.damageType != undefined);
     if (save.combat.enemy.damageType != undefined)
-        writer.setUint16(save.combat.enemy.damageType);
+        writer.setUint16(findItemFromNamespace(save.combat.enemy.damageType));
     writer.setBoolean(save.combat.fightInProgress);
     writer.setUint32(save.combat.fightTimer.ticksLeft);
     writer.setUint32(save.combat.fightTimer.maxTicks);
     writer.setBoolean(save.combat.fightTimer.active);
     writer.setBoolean(save.combat.combatActive);
     writer.setMap(save.combat.combatPassives,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setBoolean(value)
     );
     writer.setBoolean(save.combat.combatArea != undefined);
     if (save.combat.combatArea != undefined)
     {
         writer.setUint8(save.combat.combatArea.area),
-        writer.setUint16(save.combat.combatArea.subArea)
+        writer.setUint16(findItemFromNamespace(save.combat.combatArea.subArea))
     }
     writer.setUint32(save.combat.combatAreaProgress);
     writer.setBoolean(save.combat.monster != undefined);
     if (save.combat.monster != undefined)
-        writer.setUint16(save.combat.monster);
+        writer.setUint16(findItemFromNamespace(save.combat.monster));
     writer.setBoolean(save.combat.combatPaused);
     writer.setMap(save.combat.loot,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setBoolean(save.combat.slayer.taskActive);
     writer.setBoolean(save.combat.slayer.task != undefined);
     if (save.combat.slayer.task != undefined)
-        writer.setUint16(save.combat.slayer.task);
+        writer.setUint16(findItemFromNamespace(save.combat.slayer.task));
     writer.setUint32(save.combat.slayer.left);
     writer.setBoolean(save.combat.slayer.extended);
     writer.setBoolean(save.combat.slayer.category != undefined);
     if (save.combat.slayer.category != undefined)
-        writer.setUint16(save.combat.slayer.category);
+        writer.setUint16(findItemFromNamespace(save.combat.slayer.category));
     writer.setMap(save.combat.slayer.categories,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setUint32(save.combat.slayer.timer.ticksLeft);
     writer.setUint32(save.combat.slayer.timer.maxTicks);
     writer.setBoolean(save.combat.slayer.timer.active);
-    writer.setUint16(save.combat.slayer.realm);
+    writer.setUint16(findItemFromNamespace(save.combat.slayer.realm));
     writer.setBoolean(save.combat.event.active != undefined);
     if (save.combat.event.active != undefined)
-        writer.setUint16(save.combat.event.active);
-    writer.setArray(save.combat.event.passives, (writer, value) => writer.setUint16(value));
-    writer.setArray(save.combat.event.passivesSelected, (writer, value) => writer.setUint16(value));
+        writer.setUint16(findItemFromNamespace(save.combat.event.active));
+    writer.setArray(save.combat.event.passives, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
+    writer.setArray(save.combat.event.passivesSelected, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setUint32(save.combat.event.dungeonLength);
     writer.setMap(save.combat.event.activeEventAreas,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setUint32(save.combat.event.progress);
     writer.setMap(save.combat.event.dungeonCompletions,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setUint8(save.combat.event.strongholdTier);
     writer.setUint32(save.goblinRaid.player.character.hp);
     writer.setUint8(save.goblinRaid.player.character.nextAction);
     writer.setUint32(save.goblinRaid.player.character.attackCount);
-    writer.setUint16(save.goblinRaid.player.character.nextAttack);
+    writer.setUint16(findItemFromNamespace(save.goblinRaid.player.character.nextAttack));
     writer.setBoolean(save.goblinRaid.player.character.isAttacking);
     writer.setBoolean(save.goblinRaid.player.character.firstHit);
     writer.setUint32(save.goblinRaid.player.character.actionTimer.ticksLeft);
@@ -367,7 +368,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.goblinRaid.player.character.turnsTaken);
     writer.setUint32(save.goblinRaid.player.character.bufferedRegen);
     writer.setMap(save.goblinRaid.player.character.activeEffects,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
                 writer.setBoolean(value.player),
                 writer.setUint8(value.type),
@@ -387,53 +388,53 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.goblinRaid.player.character.barrier);
     writer.setBoolean(save.goblinRaid.player.meleeType != undefined);
     if (save.goblinRaid.player.meleeType != undefined)
-        writer.setUint16(save.goblinRaid.player.meleeType);
+        writer.setUint16(findItemFromNamespace(save.goblinRaid.player.meleeType));
     writer.setBoolean(save.goblinRaid.player.rangedType != undefined);
     if (save.goblinRaid.player.rangedType != undefined)
-        writer.setUint16(save.goblinRaid.player.rangedType);
+        writer.setUint16(findItemFromNamespace(save.goblinRaid.player.rangedType));
     writer.setBoolean(save.goblinRaid.player.magicType != undefined);
     if (save.goblinRaid.player.magicType != undefined)
-        writer.setUint16(save.goblinRaid.player.magicType);
+        writer.setUint16(findItemFromNamespace(save.goblinRaid.player.magicType));
     writer.setUint32(save.goblinRaid.player.prayerPoints);
     writer.setUint16(save.goblinRaid.player.equipmentSet);
     writer.setArray(save.goblinRaid.player.equipmentSets,
         (writer, value) => {
             writer.setArray(value.equipment, (writer, value) => {
-                writer.setUint16(value.id);
+                writer.setUint16(findItemFromNamespace(value.id));
                 writer.setBoolean(value.stackable != undefined)
                 if (value.stackable != undefined) {
-                    writer.setUint16(value.stackable);
+                    writer.setUint16(findItemFromNamespace(value.stackable));
                     writer.setUint32(value.qty);
                 }
-                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(value));
+                writer.setArray(value.quickEquip, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
             }),
             writer.setBoolean(value.spells.spell != undefined);
             if (value.spells.spell != undefined)
-                writer.setUint16(value.spells.spell);
+                writer.setUint16(findItemFromNamespace(value.spells.spell));
             writer.setBoolean(value.spells.aura != undefined);
             if (value.spells.aura != undefined)
-                writer.setUint16(value.spells.aura);
+                writer.setUint16(findItemFromNamespace(value.spells.aura));
             writer.setBoolean(value.spells.curse != undefined);
             if (value.spells.curse != undefined)
-                writer.setUint16(value.spells.curse);
-            writer.setArray(value.prayers, (writer, value) => writer.setUint16(value))
+                writer.setUint16(findItemFromNamespace(value.spells.curse));
+            writer.setArray(value.prayers, (writer, value) => writer.setUint16(findItemFromNamespace(value)))
     });
     writer.setUint32(save.goblinRaid.player.foodSlot);
     writer.setUint32(save.goblinRaid.player.maxFoodSlot);
-    writer.setArray(save.goblinRaid.player.foodSlots, (writer, value) => { writer.setUint16(value[0]), writer.setUint32(value[1])});
+    writer.setMap(save.goblinRaid.player.foodSlots, (writer, key) => writer.setUint16(findItemFromNamespace(key)), (writer, value) => writer.setUint32(value));
     writer.setUint32(save.goblinRaid.player.summoningTimer.ticksLeft);
     writer.setUint32(save.goblinRaid.player.summoningTimer.maxTicks);
     writer.setBoolean(save.goblinRaid.player.summoningTimer.active);
     writer.setUint32(save.goblinRaid.player.soulPoints);
     writer.setUint8(save.goblinRaid.player.unholyPrayerMultiplier);
     writer.setMap(save.goblinRaid.player.altAttacks,
-        (writer, key) => writer.setUint16(key),
-        (writer, value) => writer.setArray(value, (writer, value) => writer.setUint16(value))
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
+        (writer, value) => writer.setArray(value, (writer, value) => writer.setUint16(findItemFromNamespace(value)))
     );
     writer.setUint32(save.goblinRaid.enemy.character.hp);
     writer.setUint8(save.goblinRaid.enemy.character.nextAction);
     writer.setUint32(save.goblinRaid.enemy.character.attackCount);
-    writer.setUint16(save.goblinRaid.enemy.character.nextAttack);
+    writer.setUint16(findItemFromNamespace(save.goblinRaid.enemy.character.nextAttack));
     writer.setBoolean(save.goblinRaid.enemy.character.isAttacking);
     writer.setBoolean(save.goblinRaid.enemy.character.firstHit);
     writer.setUint32(save.goblinRaid.enemy.character.actionTimer.ticksLeft);
@@ -445,7 +446,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint32(save.goblinRaid.enemy.character.turnsTaken);
     writer.setUint32(save.goblinRaid.enemy.character.bufferedRegen);
     writer.setMap(save.goblinRaid.enemy.character.activeEffects,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
                 writer.setBoolean(value.player),
                 writer.setUint8(value.type),
@@ -467,7 +468,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setUint8(save.goblinRaid.enemy.attackType);
     writer.setBoolean(save.goblinRaid.enemy.enemy != undefined);
     if (save.goblinRaid.enemy.enemy != undefined)
-        writer.setUint16(save.goblinRaid.enemy.enemy);
+        writer.setUint16(findItemFromNamespace(save.goblinRaid.enemy.enemy));
     writer.setBoolean(save.goblinRaid.enemy.goblin != undefined);
     if (save.goblinRaid.enemy.goblin != undefined) {
         writer.setString(save.goblinRaid.enemy.goblin.name),
@@ -479,7 +480,7 @@ export function parseSave(save: saveData, initialSize: number): string {
         writer.setUint32(save.goblinRaid.enemy.goblin.magic),
         writer.setUint8(save.goblinRaid.enemy.goblin.attackType),
         writer.setInt8(save.goblinRaid.enemy.goblin.image),
-        writer.setArray(save.goblinRaid.enemy.goblin.passives, (writer, value) => writer.setUint16(value)),
+        writer.setArray(save.goblinRaid.enemy.goblin.passives, (writer, value) => writer.setUint16(findItemFromNamespace(value))),
         writer.setUint32(save.goblinRaid.enemy.goblin.corruption)
     };
     writer.setBoolean(save.goblinRaid.inProgress);
@@ -488,110 +489,110 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setBoolean(save.goblinRaid.spawnTimer.active);
     writer.setBoolean(save.goblinRaid.active);
     writer.setMap(save.goblinRaid.passives,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setBoolean(value)
     );
     writer.setMap(save.goblinRaid.playerModifiers,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
             writer.setFloat64(value[0])
             writer.setUint32(value[1]);
             var j = 2;
             for (var i = 1; i <= 256; i *= 2)
                 if (value[1] & i) {
-                    writer.setUint16(value[j]);
+                    writer.setUint16(findItemFromNamespace(value[j]));
                     j += 1;
                 }
         }
     );
     writer.setMap(save.goblinRaid.enemyModifiers,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
             writer.setFloat64(value[0])
             writer.setUint32(value[1]);
             var j = 2;
             for (var i = 1; i <= 256; i *= 2)
                 if (value[1] & i) {
-                    writer.setUint16(value[j]);
+                    writer.setUint16(findItemFromNamespace(value[j]));
                     j += 1;
                 }
         }
     );
     writer.setUint8(save.goblinRaid.state);
     writer.setUint8(save.goblinRaid.difficulty);
-    writer.setArray(save.goblinRaid.bank.lockedItems, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.goblinRaid.bank.lockedItems, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setArray(save.goblinRaid.bank.tabs,
         (writer, value) => writer.setMap(value, 
-            (writer, key) => writer.setUint16(key),
+            (writer, key) => writer.setUint16(findItemFromNamespace(key)),
             (writer, value) => writer.setUint32(value)
         )
     );
     writer.setMap(save.goblinRaid.bank.defaultTabs,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint8(value)
     )
-    writer.setArray(save.goblinRaid.bank.sortOrder, (writer, value) => writer.setUint16(value));
-    writer.setArray(save.goblinRaid.bank.glowing, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.goblinRaid.bank.sortOrder, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
+    writer.setArray(save.goblinRaid.bank.glowing, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setMap(save.goblinRaid.bank.icons,
         (writer, key) => writer.setUint8(key),
-        (writer, value) => writer.setUint16(value)
+        (writer, value) => writer.setUint16(findItemFromNamespace(value))
     );
     writer.setUint32(save.goblinRaid.wave);
     writer.setUint32(save.goblinRaid.waveProgress);
     writer.setUint32(save.goblinRaid.killCount);
     writer.setFloat64(save.goblinRaid.start);
-    writer.setArray(save.goblinRaid.ownedCrateItems, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.goblinRaid.ownedCrateItems, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setMap(save.goblinRaid.randomModifiers,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
             writer.setFloat64(value[0])
             writer.setUint32(value[1]);
             var j = 2;
             for (var i = 1; i <= 256; i *= 2)
                 if (value[1] & i) {
-                    writer.setUint16(value[j]);
+                    writer.setUint16(findItemFromNamespace(value[j]));
                     j += 1;
                 }
         }
     );
     writer.setBoolean(save.goblinRaid.positiveModifier);
     writer.setMap(save.goblinRaid.items.weapons, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
         }
     );
     writer.setMap(save.goblinRaid.items.armour, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
         }
     );
     writer.setMap(save.goblinRaid.items.ammo, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
         }
     );
     writer.setMap(save.goblinRaid.items.runes, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
         }
     );
     writer.setMap(save.goblinRaid.items.food, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
         }
     );
     writer.setMap(save.goblinRaid.items.passives, 
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => { 
             writer.setUint32(value.qty);
             writer.setBoolean(value.alt)
@@ -603,10 +604,10 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setBoolean(save.goblinRaid.paused);
     writer.setArray(save.goblinRaid.history, (writer, value) => {
         writer.setArray(value.skills, (writer, value) => writer.setUint32(value));
-        writer.setArray(value.equipment, (writer, value) => writer.setUint16(value));
+        writer.setArray(value.equipment, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
         writer.setUint32(value.ammo);
         writer.setMap(value.inventories,
-            (writer, key) => writer.setUint16(key),
+            (writer, key) => writer.setUint16(findItemFromNamespace(key)),
             (writer, value) => writer.setUint32(value)
         );
         writer.setUint16(value.food);
@@ -616,32 +617,32 @@ export function parseSave(save: saveData, initialSize: number): string {
         writer.setFloat64(value.time);
         writer.setUint32(value.coins);
         writer.setUint8(value.difficuilty);
-    })
+    });
     writer.setMap(save.minibar,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setArray(value,
-            (writer, value) => writer.setUint16(value)
+            (writer, value) => writer.setUint16(findItemFromNamespace(value))
         )
     );
-    writer.setArray(save.pets, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.pets, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setMap(save.shop.items,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setFloat64(save.shop.purchases);
     writer.setMap(save.itemCharges,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setBoolean(save.tutorialComplete);
     writer.setMap(save.potions.list, 
-        (writer, key) => writer.setUint16(key), 
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)), 
         (writer, value ) => {
-            writer.setUint16(value.item);
+            writer.setUint16(findItemFromNamespace(value.item));
             writer.setUint32(value.charges)
         }
     );
-    writer.setArray(save.potions.reuse, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.potions.reuse, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
 
     writer.setMap(save.stats.woodcutting,
         (writer, key) => writer.setUint32(key),
@@ -732,14 +733,14 @@ export function parseSave(save: saveData, initialSize: number): string {
         (writer, value) => writer.setFloat64(value)
     );
     writer.setMap(save.stats.items,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setMap(value, 
             (writer, key) => writer.setUint32(key),
             (writer, value) => writer.setFloat64(value)
         )
     )
     writer.setMap(save.stats.monsters,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setMap(value, 
             (writer, key) => writer.setUint32(key),
             (writer, value) => writer.setFloat64(value)
@@ -835,7 +836,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setBoolean(save.settings.showTierIIIPotions);
     writer.setBoolean(save.settings.showTierIVPotions);
     writer.setBoolean(save.settings.showNeutralAttackModifiers);
-    writer.setUint16(save.settings.defaultPageOnLoad);
+    writer.setUint16(findItemFromNamespace(save.settings.defaultPageOnLoad));
     writer.setUint8(save.settings.formatNumberSetting);
     writer.setUint8(save.settings.bankSortOrder);
     writer.setUint8(save.settings.colourBlindMode);
@@ -910,9 +911,9 @@ export function parseSave(save: saveData, initialSize: number): string {
 
 
     writer.setMap(save.skills, 
-        (writer, key) => writer.setUint16(key), 
+        (writer, key) => {writer.setUint16(findItemFromNamespace(key))}, 
         (writer, value, k) => {
-            const skillSizeLocation = writer.offset
+            const skillSizeLocation = writer.offset[0]
             writer.setUint32(0);
             writer.setFloat64(value.xp);
             writer.setBoolean(value.skillUnlocked);
@@ -939,13 +940,14 @@ export function parseSave(save: saveData, initialSize: number): string {
             writer.setUint16(value.realm);
             const skillName = k;
             if (!["melvorD:Attack", "melvorD:Strength", "melvorD:Defence", "melvorD:Hitpoints", "melvorD:Ranged", "melvorD:Prayer", "melvorD:Slayer"].includes(skillName)) {
+                //console.log(value);
                 if (!["melvorD:Township", "melvorItA:Corruption", "melvorAoD:Cartography"].includes(skillName)) {
                     writer.setMap(value.mastery.actionMastery,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setFloat64(value)    
                     );
                     writer.setMap(value.mastery.masteryPool,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setFloat64(value)    
                     );
                     if (skillName != "melvorD:Farming") {
@@ -958,13 +960,13 @@ export function parseSave(save: saveData, initialSize: number): string {
                 if (["melvorD:Herblore", "melvorD:Crafting", "melvorD:Runecrafting", "melvorD:Smithing"].includes(skillName)) {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
-                        writer.setUint16(value.skillSpecific.recipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.recipe));
                 } else if (skillName == "melvorAoD:Archaeology") {
                     writer.setBoolean(value.skillSpecific.digsite != undefined);
                     if (value.skillSpecific.digsite != undefined)
                         writer.setUint16(value.skillSpecific.digsite);
                     writer.setMap(value.skillSpecific.digsites,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setArray(value.maps,
                                 (writer, value) => {
@@ -975,14 +977,14 @@ export function parseSave(save: saveData, initialSize: number): string {
                                     writer.setUint16(value.artefactValuesMedium);
                                     writer.setUint16(value.artefactValuesLarge);
                                     writer.setMap(value.refinements, 
-                                        (writer, key) => writer.setUint16(key),
+                                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                         (writer, value) => {
                                             writer.setFloat64(value[0]);
                                             writer.setUint32(value[1]);
                                             var j = 2
                                             for (var i = 1; i <= 256; i *= 2)
                                                 if (value[1] & i) {
-                                                    writer.setUint16(value[j]);
+                                                    writer.setUint16(findItemFromNamespace(value[j]));
                                                     j += 1;
                                                 }
                                         }
@@ -990,32 +992,32 @@ export function parseSave(save: saveData, initialSize: number): string {
                                 }
                             );
                             writer.setInt8(value.selectedMap);
-                            writer.setArray(value.selectedTools, (writer, value) => writer.setUint16(value));
+                            writer.setArray(value.selectedTools, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                             writer.setUint8(value.selectedUpgrade);
                         }
                     ),
                     writer.setMap(value.skillSpecific.museum.items,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setBoolean(value)
                     );
-                    writer.setArray(value.skillSpecific.museum.donated, (writer, value) => writer.setUint16(value));
-                    writer.setArray(value.skillSpecific.hiddenDigsites, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.museum.donated, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
+                    writer.setArray(value.skillSpecific.hiddenDigsites, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                 } else if (skillName == "melvorD:Agility") {
                     writer.setInt16(value.skillSpecific.activeObstacle),
                     writer.setMap(value.skillSpecific.obstacleBuildCount,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setUint32(value)
                     ),
                     writer.setMap(value.skillSpecific.course,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setMap(value.builtObstacles,
                                 (writer, key) => writer.setUint8(key),
-                                (writer, value) => writer.setUint16(value)
+                                (writer, value) => writer.setUint16(findItemFromNamespace(value))
                             ),
                             writer.setMap(value.builtPillars,
                                 (writer, key) => writer.setUint8(key),
-                                (writer, value) => writer.setUint16(value)
+                                (writer, value) => writer.setUint16(findItemFromNamespace(value))
                             ),
                             writer.setMap(value.blueprints,
                                 (writer, key) => writer.setUint8(key),
@@ -1023,11 +1025,11 @@ export function parseSave(save: saveData, initialSize: number): string {
                                     writer.setString(value.name),
                                     writer.setMap(value.obstacles,
                                         (writer, key) => writer.setUint8(key),
-                                        (writer, value) => writer.setUint16(value)
+                                        (writer, value) => writer.setUint16(findItemFromNamespace(value))
                                     ),
                                     writer.setMap(value.pillars,
                                         (writer, key) => writer.setUint8(key),
-                                        (writer, value) => writer.setUint16(value)
+                                        (writer, value) => writer.setUint16(findItemFromNamespace(value))
                                     )
                                 }
                             )
@@ -1036,23 +1038,23 @@ export function parseSave(save: saveData, initialSize: number): string {
                 } else if (skillName == "melvorD:Magic") {
                     writer.setBoolean(value.skillSpecific.spell != undefined);
                     if (value.skillSpecific.spell != undefined)
-                        writer.setUint16(value.skillSpecific.spell);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.spell));
                     writer.setBoolean(value.skillSpecific.conversionItem != undefined);
                     if (value.skillSpecific.conversionItem != undefined)
-                        writer.setUint16(value.skillSpecific.conversionItem);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.conversionItem));
                     writer.setBoolean(value.skillSpecific.selectedRecipe != undefined);
                     if (value.skillSpecific.selectedRecipe != undefined)
-                        writer.setUint16(value.skillSpecific.selectedRecipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.selectedRecipe));
                 } else if (skillName == "melvorD:Astrology") {
                     writer.setBoolean(value.skillSpecific.studied != undefined);
                     if (value.skillSpecific.studied != undefined)
-                        writer.setUint16(value.skillSpecific.studied);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.studied));
                     writer.setBoolean(value.skillSpecific.explored != undefined);
                     if (value.skillSpecific.explored != undefined)
-                        writer.setUint16(value.skillSpecific.explored);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.explored));
                     writer.setArray(value.skillSpecific.actions,
                         (writer, value) => {
-                            writer.setUint16(value.recipie),
+                            writer.setUint16(findItemFromNamespace(value.recipie)),
                             writer.setArray(value.standardModsBought, (writer, value) => writer.setUint8(value)),
                             writer.setArray(value.uniqueModsBought, (writer, value) => writer.setUint8(value)),
                             writer.setArray(value.abyssalModsBought, (writer, value) => writer.setUint8(value))
@@ -1060,7 +1062,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     ),
                     writer.setArray(value.skillSpecific.dummyRecipies,
                         (writer, value) => {
-                            writer.setUint16(value.recipie),
+                            writer.setUint16(findItemFromNamespace(value.recipie)),
                             writer.setArray(value.standardModsBought, (writer, value) => writer.setUint8(value)),
                             writer.setArray(value.uniqueModsBought, (writer, value) => writer.setUint8(value)),
                             writer.setArray(value.abyssalModsBought, (writer, value) => writer.setUint8(value))
@@ -1068,7 +1070,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     )
                 } else if (skillName == "melvorAoD:Cartography") {
                     writer.setMap(value.skillSpecific.worldMaps,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setMap(value.worldMap,
                                 (writer, key) => writer.setInt16(key),
@@ -1081,9 +1083,9 @@ export function parseSave(save: saveData, initialSize: number): string {
                             writer.setInt16(value.position[0]);
                             writer.setInt16(value.position[1]);
                             writer.setArray(value.filterSettings.markerSettings, (writer, value) => writer.setBoolean(value));
-                            writer.setArray(value.filterSettings.hiddenFastTravelGroups, (writer, value) => writer.setUint16(value));
+                            writer.setArray(value.filterSettings.hiddenFastTravelGroups, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                             writer.setMap(value.pois,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => {
                                         writer.setBoolean(value.discovered);
                                         writer.setUint8(value.fastTravelUnlocked);
@@ -1092,7 +1094,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                                 }
                             ),
                             writer.setMap(value.bonus,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => writer.setBoolean(value)
                             )
                         }
@@ -1104,7 +1106,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.timer.active);
                     writer.setBoolean(value.skillSpecific.map != undefined);
                     if (value.skillSpecific.map != undefined) {
-                        writer.setUint16(value.skillSpecific.map.activeMap);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.map.activeMap));
                         writer.setArray(value.skillSpecific.map.surveyQueue, 
                             (writer, value) => {
                                 writer.setInt16(value[0]);
@@ -1119,20 +1121,20 @@ export function parseSave(save: saveData, initialSize: number): string {
                     }
                     writer.setBoolean(value.skillSpecific.event != undefined);
                     if (value.skillSpecific.event != undefined)
-                        writer.setUint16(value.skillSpecific.event);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.event));
                     writer.setBoolean(value.skillSpecific.paperRecipe != undefined);
                     if (value.skillSpecific.paperRecipe != undefined)
-                        writer.setUint16(value.skillSpecific.paperRecipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.paperRecipe));
                     writer.setBoolean(value.skillSpecific.digSite != undefined);
                     if (value.skillSpecific.digSite != undefined)
-                        writer.setUint16(value.skillSpecific.digSite);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.digSite));
                 } else if (skillName == "melvorD:Cooking") {
                     writer.setMap(value.skillSpecific.selectedRecipies,
-                        (writer, key) => writer.setUint16(key),
-                        (writer, value) => writer.setUint16(value)
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
+                        (writer, value) => writer.setUint16(findItemFromNamespace(value))
                     );
                     writer.setMap(value.skillSpecific.passiveCookTimers,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setUint32(value.ticksLeft);
                             writer.setUint32(value.maxTicks);
@@ -1140,46 +1142,46 @@ export function parseSave(save: saveData, initialSize: number): string {
                         }
                     );
                     writer.setMap(value.skillSpecific.stockpileItems,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setUint16(value.item);
                             writer.setInt32(value.qty);
                         }
                     );
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.activeCategory);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.activeCategory));
                 } else if (skillName == "melvorD:Farming") {
                     writer.setMap(value.skillSpecific.plots,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setUint8(value.state),
                             writer.setBoolean(value.planted != undefined)
                             if (value.planted != undefined)
-                                writer.setUint16(value.planted);
+                                writer.setUint16(findItemFromNamespace(value.planted));
                             writer.setBoolean(value.compost != undefined)
                             if (value.compost != undefined)
-                                writer.setUint16(value.compost);
+                                writer.setUint16(findItemFromNamespace(value.compost));
                             writer.setUint8(value.compostLevel),
                             writer.setBoolean(value.selected != undefined)
                             if (value.selected != undefined)
-                                writer.setUint16(value.selected);
+                                writer.setUint16(findItemFromNamespace(value.selected));
                             writer.setFloat64(value.growthTime);
                         }
                     );
                     writer.setMap(value.skillSpecific.dummyPlots,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setUint8(value.state),
                             writer.setBoolean(value.planted != undefined)
                             if (value.planted != undefined)
-                                writer.setUint16(value.planted);
+                                writer.setUint16(findItemFromNamespace(value.planted));
                             writer.setBoolean(value.compost != undefined)
                             if (value.compost != undefined)
-                                writer.setUint16(value.compost);
+                                writer.setUint16(findItemFromNamespace(value.compost));
                             writer.setUint8(value.compostLevel),
                             writer.setBoolean(value.selected != undefined)
                             if (value.selected != undefined)
-                                writer.setUint16(value.selected);
+                                writer.setUint16(findItemFromNamespace(value.selected));
                             writer.setFloat64(value.growthTime);
                         }
                     );
@@ -1196,28 +1198,28 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.bonfireTimer.active);
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
-                        writer.setUint16(value.skillSpecific.recipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.recipe));
                     writer.setBoolean(value.skillSpecific.bonfireRecipe != undefined);
                     if (value.skillSpecific.bonfireRecipe != undefined)
-                        writer.setUint16(value.skillSpecific.bonfireRecipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.bonfireRecipe));
                     writer.setUint32(value.skillSpecific.oilTimer.ticksLeft);
                     writer.setUint32(value.skillSpecific.oilTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.oilTimer.active);
                     writer.setBoolean(value.skillSpecific.oiledLogRecipe != undefined);
                     if (value.skillSpecific.oiledLogRecipe != undefined)
-                        writer.setUint16(value.skillSpecific.oiledLogRecipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.oiledLogRecipe));
                     writer.setBoolean(value.skillSpecific.oilRecipe != undefined);
                     if (value.skillSpecific.oilRecipe != undefined)
-                        writer.setUint16(value.skillSpecific.oilRecipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.oilRecipe));
                 } else if (skillName == "melvorD:Fishing") {
                     writer.setBoolean(value.skillSpecific.secretAreaUnlocked);
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.area);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.area));
                     writer.setMap(value.skillSpecific.selectedAreaFish,
-                        (writer, key) => writer.setUint16(key),
-                        (writer, value) => writer.setUint16(value)
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
+                        (writer, value) => writer.setUint16(findItemFromNamespace(value))
                     );
-                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                     writer.setBoolean(value.skillSpecific.contest != undefined);
                     if (value.skillSpecific.contest != undefined) {
                         writer.setArray(value.skillSpecific.contest.completion, (writer, value) => writer.setBoolean(value));
@@ -1226,21 +1228,21 @@ export function parseSave(save: saveData, initialSize: number): string {
                 } else if (skillName == "melvorD:Fletching") {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
-                        writer.setUint16(value.skillSpecific.recipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.recipe));
                     writer.setMap(value.skillSpecific.altRecipies,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setUint16(value)
                     )
                 } else if (skillName == "melvorD:Summoning") {
                     writer.setBoolean(value.skillSpecific.recipe != undefined);
                     if (value.skillSpecific.recipe != undefined)
-                        writer.setUint16(value.skillSpecific.recipe);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.recipe));
                     writer.setMap(value.skillSpecific.selectedNonShardCosts,
-                        (writer, key) => writer.setUint16(key),
-                        (writer, value) => writer.setUint16(value)
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
+                        (writer, value) => writer.setUint16(findItemFromNamespace(value))
                     );
                     writer.setMap(value.skillSpecific.marksUnlocked,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setUint8(value)
                     );
                 } else if (skillName == "melvorD:Thieving") {
@@ -1248,67 +1250,67 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setUint32(value.skillSpecific.stunTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.stunTimer.active);
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.area);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.area));
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.npc);
-                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(value));
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.npc));
+                    writer.setArray(value.skillSpecific.hiddenAreas, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                     writer.setUint8(value.skillSpecific.stunState);
                 } else if (skillName == "melvorD:Township") {
-                    writer.setUint16(value.skillSpecific.townData.worship);
+                    writer.setUint16(findItemFromNamespace(value.skillSpecific.townData.worship));
                     writer.setBoolean(value.skillSpecific.townData.created);
                     writer.setInt16(value.skillSpecific.townData.seasonTicksRemaining);
                     writer.setBoolean(value.skillSpecific.townData.season != undefined);
                     if (value.skillSpecific.townData.season != undefined)
-                        writer.setUint16(value.skillSpecific.townData.season);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.townData.season));
                     writer.setBoolean(value.skillSpecific.townData.previousSeason != undefined);
                     if (value.skillSpecific.townData.previousSeason != undefined)
-                        writer.setUint16(value.skillSpecific.townData.previousSeason);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.townData.previousSeason));
                     writer.setInt8(value.skillSpecific.townData.health);
                     writer.setInt32(value.skillSpecific.townData.souls);
                     writer.setInt16(value.skillSpecific.townData.abyssalWaveTicksRemaining);
                     writer.setMap(value.skillSpecific.resources,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setFloat64(value.qty);
                             writer.setUint8(value.cap);
                         }
                     );
                     writer.setMap(value.skillSpecific.dummyResources,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setFloat64(value.qty);
                             writer.setUint8(value.cap);
                         }
                     );
                     writer.setMap(value.skillSpecific.biomes,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setMap(value.buildingsBuilt,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => writer.setUint32(value)
                             );
                             writer.setMap(value.buildingEfficiency,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => writer.setUint32(value)
                             );
                         }
                     );
                     writer.setMap(value.skillSpecific.dummyBiomes,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setMap(value.buildingsBuilt,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => writer.setUint32(value)
                             );
                             writer.setMap(value.buildingEfficiency,
-                                (writer, key) => writer.setUint16(key),
+                                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                                 (writer, value) => writer.setUint32(value)
                             );
                         }
                     );
                     writer.setUint32(value.skillSpecific.legacyTicks);
                     writer.setUint32(value.skillSpecific.totalTicks);
-                    writer.setArray(value.skillSpecific.tasksCompleted, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.tasksCompleted, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                     writer.setBoolean(value.skillSpecific.townshipConverted);
                     writer.setUint32(value.skillSpecific.casualTasks.completed);
                     writer.setMap(value.skillSpecific.casualTasks.currentCasualTasks,
@@ -1327,12 +1329,12 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setUint32(value.skillSpecific.abyssalWaveTimer.maxTicks);
                     writer.setBoolean(value.skillSpecific.abyssalWaveTimer.active);
                 } else if (skillName == "melvorD:Woodcutting") {
-                    writer.setArray(value.skillSpecific.activeTrees, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.activeTrees, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                 } else if (skillName == "melvorD:Mining") {
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.selectedRock);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.selectedRock));
                     writer.setMap(value.skillSpecific.rocks,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                                 writer.setBoolean(value.isRespawning);
                                 writer.setUint32(value.currentHP);
@@ -1340,7 +1342,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                         }
                     );
                     writer.setMap(value.skillSpecific.rockRespawnTimers,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                                 writer.setUint32(value.ticksLeft);
                                 writer.setUint32(value.maxTicks);
@@ -1352,15 +1354,15 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.passiveRegenTimer.active);
                 } else if (skillName == "melvorItA:Corruption") {
                     writer.setMap(value.skillSpecific.corruptionEffects,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setBoolean(value)
                     );
-                    writer.setArray(value.skillSpecific.corruptionUnlockedRows, (writer, value) => writer.setUint16(value));
+                    writer.setArray(value.skillSpecific.corruptionUnlockedRows, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
                 } else if (skillName == "melvorItA:Harvesting") {
                     if (value.active)
-                        writer.setUint16(value.skillSpecific.selectedVein);
+                        writer.setUint16(findItemFromNamespace(value.skillSpecific.selectedVein));
                     writer.setMap(value.skillSpecific.veins,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => {
                             writer.setUint32(value.currentIntensity);
                             writer.setUint32(value.maxIntensity);
@@ -1371,7 +1373,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.veinDecayTimer.active);
                 } 
             }
-            writer.dataView.setUint32(skillSizeLocation, writer.offset - skillSizeLocation - 4);
+            writer.dataView[0].setUint32(skillSizeLocation, writer.offset[0] - skillSizeLocation - 4);
         }
     );
     writer.setMap(save.mods,
@@ -1383,7 +1385,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     );
     writer.setString(save.completion.completion);
     writer.setMap(save.settings.keyBindings,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setArray(value,
             (writer, value) => {
                 writer.setBoolean(true)
@@ -1399,7 +1401,7 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.setInt8(save.completion.clueHuntStep);
     
     writer.setMap(save.currencies,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
             writer.setFloat64(value.qty),
             writer.setMap(value.stats,
@@ -1407,7 +1409,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                 (writer, value) => writer.setFloat64(value)
             ),
             writer.setMap(value.currencySkills,
-                (writer, key) => writer.setUint16(key),
+                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                 (writer, value) => writer.setMap(value,
                     (writer, key) => writer.setUint32(key),
                     (writer, value) => writer.setFloat64(value)
@@ -1416,24 +1418,61 @@ export function parseSave(save: saveData, initialSize: number): string {
         }
     )
     writer.setMap(save.completion.areaCompletions,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setMap(save.completion.strongholdCompletions,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => writer.setUint32(value)
     );
     writer.setMap(save.levelCapIncreases.increases,
-        (writer, key) => writer.setUint16(key),
+        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
         (writer, value) => {
             writer.setArray(value.given, (writer,value) => writer.setUint16(value));
             writer.setArray(value.increases, (writer, value) => writer.setUint16(value))
         }
     );
-    writer.setArray(save.levelCapIncreases.selected, (writer, value) => writer.setUint16(value));
+    writer.setArray(save.levelCapIncreases.selected, (writer, value) => writer.setUint16(findItemFromNamespace(value)));
     writer.setUint16(save.levelCapIncreases.bought);
     writer.setUint16(save.levelCapIncreases.abyssalBought);
-    writer.setUint16(save.realm);
-    writer.dataView.setUint32(bodySizeLocation, writer.offset - bodySizeLocation - 4);
+    writer.setUint16(findItemFromNamespace(save.realm));
+    writer.dataView[0].setUint32(bodySizeLocation, writer.offset[0] - bodySizeLocation - 4);
+
+
+
+
+
+    writer.setStaticString("melvor", 1);
+    const headerSizeLocation = writer.offset[1];
+    writer.setUint32(0, 1);
+    writer.setMap(namespaces,
+        (writer, key) => writer.setString(key, 1), 
+        (writer, value) => writer.setMap(value,
+            (writer, key) => writer.setString(key, 1),
+            (writer, value) => writer.setUint16(value, 1),
+            1
+        ), 1
+    );
+    writer.setUint32(130, 1);
+    writer.setString(save.header.saveName, 1);
+    writer.setString(save.header.gameMode, 1);
+    writer.setUint16(save.header.skillLevel, 1);
+    writer.setFloat64(save.header.gp, 1);
+    writer.setBoolean(save.header.activeTraining, 1);
+    writer.setString(save.header.activeTrainingName, 1);
+    writer.setFloat64(save.header.tickTime, 1);
+    writer.setFloat64(save.header.saveTime, 1);
+    writer.setSet(save.header.activeNamespaces, (writer, value) => writer.setString(value, 1), 1);
+    writer.setBoolean(save.header.mods != undefined, 1)
+    if (save.header.mods != undefined) {
+        writer.setString(save.header.mods.profileId, 1),
+        writer.setString(save.header.mods.profileName, 1),
+        writer.setSet(save.header.mods.mods, (writer, value) => writer.setUint32(value, 1), 1)
+    }
+    writer.dataView[1].setUint32(headerSizeLocation, writer.offset[1] - headerSizeLocation - 4);
+
+
+    console.log(namespaces);
+
     return writer.generateSaveString();
 }
