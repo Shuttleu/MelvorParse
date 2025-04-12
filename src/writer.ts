@@ -112,8 +112,6 @@ export class Writer {
     }
 
     setMap(map: Map<any, any>, setKey: (writer: Writer, key: any, whichDataset: number) => void, setValue: (writer: Writer, value: any, key: string, whichDataset: number) => void, whichDataset = 0) {
-        if (whichDataset == 1)
-            console.log(map);
         const mapSize = map.size;
         this.setUint32(mapSize, whichDataset);
         map.forEach((value, key) => {
@@ -927,10 +925,10 @@ export function parseSave(save: saveData, initialSize: number): string {
             writer.setInt16(value.levelCap);
             writer.setInt16(value.abyssalLevelCap);
             writer.setMap(value.skillTrees,
-                (writer, key) => writer.setUint16(key),
+                (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                 (writer, value) => {
                     writer.setMap(value[0],
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setBoolean(value)
                     );
                     writer.setUint8(value[1])
@@ -1314,7 +1312,7 @@ export function parseSave(save: saveData, initialSize: number): string {
                     writer.setBoolean(value.skillSpecific.townshipConverted);
                     writer.setUint32(value.skillSpecific.casualTasks.completed);
                     writer.setMap(value.skillSpecific.casualTasks.currentCasualTasks,
-                        (writer, key) => writer.setUint16(key),
+                        (writer, key) => writer.setUint16(findItemFromNamespace(key)),
                         (writer, value) => writer.setArray(value, (writer, value) => writer.setFloat64(value))
                     );
                     writer.setUint32(value.skillSpecific.casualTasks.newTaskTimer.ticksLeft);
@@ -1472,7 +1470,6 @@ export function parseSave(save: saveData, initialSize: number): string {
     writer.dataView[1].setUint32(headerSizeLocation, writer.offset[1] - headerSizeLocation - 4);
 
 
-    console.log(namespaces);
 
     return writer.generateSaveString();
 }

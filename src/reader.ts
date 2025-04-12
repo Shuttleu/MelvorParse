@@ -853,8 +853,8 @@ export function parseString(string: string): {saveData: saveData, initialSize: n
                 levelCap: reader.getInt16(),
                 abyssalLevelCap: reader.getInt16(),
                 skillTrees: reader.getMap(
-                    (reader) => reader.getUint16(),
-                    (reader) => [reader.getMap((reader) => reader.getUint16(), (reader) => reader.getBoolean()), reader.getUint8()]
+                    (reader) => findNamespaceFromItem(reader.getUint16()),
+                    (reader) => [reader.getMap((reader) => findNamespaceFromItem(reader.getUint16()), (reader) => reader.getBoolean()), reader.getUint8()]
                 ),
                 abyssalXP: reader.getFloat64(),
                 realm: reader.getUint16(),
