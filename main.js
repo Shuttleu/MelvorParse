@@ -253,6 +253,7 @@ const equipmentSets = reader.getArray((reader) => {
 const selectedFoodSlot = reader.getUint32();
 const maxFoodSlot = reader.getUint32();
 const foodSlots = reader.getMap((reader) => reader.getUint16(), (reader) => reader.getUint32());
+console.log(reader.offset);
 const summonTicksLeft = reader.getUint32();
 const summonMaxTicks = reader.getUint32();
 const summonActive = reader.getBoolean();
@@ -306,6 +307,7 @@ const enemyAttackType = reader.getUint8();
 const enemy = reader.getBoolean() ? reader.getUint16() : undefined;
 const damageType = reader.getBoolean() ? reader.getUint16() : undefined;
 // Enemy Complete
+
 // Fight Start
 const fightInProgess = reader.getBoolean();
 const fightSpawnTicksLeft = reader.getUint32();
@@ -388,6 +390,7 @@ const raidactiveEffects = reader.getMap(
 
 const raidfirstMiss = reader.getBoolean();
 const raidbarrier = reader.getUint32();
+
 const raidMeleeStyle = reader.getBoolean() ? reader.getUint16() : undefined;
 const raidRangedStyle = reader.getBoolean() ? reader.getUint16() : undefined;
 const raidMagicStyle = reader.getBoolean() ? reader.getUint16() : undefined;
@@ -433,7 +436,6 @@ const raidAltAttacks = reader.getMap(
 );
 
 // Character Complete
-
 
 // Enemy start
 const raidenemyHitpoints = reader.getUint32();

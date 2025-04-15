@@ -5,7 +5,10 @@ import Header from "./Header"
 import Bank from "./Bank"
 
 type SaveProps = {
-    save: saveData
+    save: saveData;
+    updateItem: (path: string, array: boolean, newValue: any) => void;
+    addItem: (path: string, array: boolean, newValue: any) => void;
+    removeItem: (path: string, array: boolean) => void;
 }
 
 export default function Save(props: SaveProps) {
@@ -16,12 +19,25 @@ export default function Save(props: SaveProps) {
         setSelectedCategory(category);
     }
 
+    const getItem = (object: any, paths: Array<string>) => {
+        if (paths.length > 1)
+            return getItem(object[paths[0]], paths.slice(1))
+        else
+            return object[paths[0]];
+    }   
+
+    const printItem = (savePath: string) => {
+        var paths = savePath.split(".");
+        var object = getItem(props.save, paths)
+        console.log(object);
+    }
+
     const renderCategory = (selected: number) => {
         switch(selected) {
             case 0:
                 return <Header save={props.save}></Header>;
             case 1:
-                return <Bank save={props.save}></Bank>;
+                return <Bank removeBankItem={props.removeItem} changeBankItem={props.updateItem} save={props.save}></Bank>;
             default:
                 return undefined;
         }

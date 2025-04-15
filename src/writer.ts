@@ -247,7 +247,12 @@ export function parseSave(save: saveData, initialSize: number): string {
     });
     writer.setUint32(save.combat.player.foodSlot);
     writer.setUint32(save.combat.player.maxFoodSlot);
-    writer.setMap(save.combat.player.foodSlots, (writer, key) => writer.setUint16(findItemFromNamespace(key)), (writer, value) => writer.setUint32(value));
+    writer.setArray(save.combat.player.foodSlots,
+        (writer, value) => {
+            writer.setUint16(findItemFromNamespace(value.item));
+            writer.setUint32(value.qty);
+        }
+    );
     writer.setUint32(save.combat.player.summoningTimer.ticksLeft);
     writer.setUint32(save.combat.player.summoningTimer.maxTicks);
     writer.setBoolean(save.combat.player.summoningTimer.active);
@@ -419,7 +424,12 @@ export function parseSave(save: saveData, initialSize: number): string {
     });
     writer.setUint32(save.goblinRaid.player.foodSlot);
     writer.setUint32(save.goblinRaid.player.maxFoodSlot);
-    writer.setMap(save.goblinRaid.player.foodSlots, (writer, key) => writer.setUint16(findItemFromNamespace(key)), (writer, value) => writer.setUint32(value));
+    writer.setArray(save.goblinRaid.player.foodSlots,
+        (writer, value) => {
+            writer.setUint16(findItemFromNamespace(value.item));
+            writer.setUint32(value.qty);
+        }
+    );
     writer.setUint32(save.goblinRaid.player.summoningTimer.ticksLeft);
     writer.setUint32(save.goblinRaid.player.summoningTimer.maxTicks);
     writer.setBoolean(save.goblinRaid.player.summoningTimer.active);

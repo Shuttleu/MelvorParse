@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { parseString } from "./reader.ts"
 import { parseSave } from "./writer.ts";
 import { saveData } from "./type.ts";
@@ -15,11 +15,84 @@ function App() {
 	const [save, setSave] = useState<{saveData: saveData, initialSize: number}>();
 	const [newSavestring, setNewSaveString] = useState("");
     const [activeItem, setActiveItem] = useState("0");
+    const [items, setItems] = useState<Array<string>>([]);
+
+    useEffect(() => {
+        fetch("https://corsproxy.io/?url=https://melvoridle.com/assets/schema/gameData.json").then((response) => {
+            if (response.ok) {
+                response.json().then((value) => {
+                    var tempArray: Array<string>= [];
+                    const categories = ["ItemID", "EquipmentItemID", "FoodItemID", "BoneItemID", "PotionItemID", "ReadableItemID", "OpenableItemID", "TokenItemID", "CompostItemID", "SoulItemID", "RuneItemID", "FiremakingOilItemID"];
+                    categories.forEach((category) => {
+                        tempArray = tempArray.concat(value.$defs[category].anyOf[1].enum);
+                    });
+                    setItems(tempArray);
+                })
+            }
+        })
+    });
 
 	const generateSave = () => {
 	if (save)
 		setNewSaveString(parseSave(save.saveData, save.initialSize));
 	}
+
+    const getItem = (object: any, paths: Array<string>, array: boolean) => {
+        if (paths.length > 1)
+            return getItem(object[paths[0]], paths.slice(1), array)
+        else
+            return object[paths[0]];
+    }  
+
+    const setItem = (object: any, paths: Array<string>, array: boolean, value: any) => {
+        if (paths.length > 1)
+            return setItem(object[paths[0]], paths.slice(1), array, value);
+        else
+            if (array)
+                object[paths[0]] = value;
+            else
+                object.set(paths[0], value);
+    }  
+
+    const deleteItem = (object: any, paths: Array<string>, array: boolean) => {
+        if (paths.length > 1)
+            return deleteItem(object[paths[0]], paths.slice(1), array);
+        else
+            if (array)
+                object.splice(paths[0], 1);
+            else
+                object.delete(paths[0]);
+    }  
+
+    const addItem = (path: string, array: boolean, item: any) => {
+        const splitSave = path.split(".");
+        var copySave = {...save}
+        console.log(copySave);
+        setItem(copySave.saveData!, splitSave, array, item);
+        console.log(copySave);
+        // @ts-ignore
+        setSave(copySave);
+    }
+
+    const removeItem = (path: string, array: boolean) => {
+        const splitSave = path.split(".");
+        var copySave = {...save}
+        console.log(copySave);
+        deleteItem(copySave.saveData!, splitSave, array, );
+        console.log(copySave);
+        // @ts-ignore
+        setSave(copySave);
+    }
+
+    const updateItem = (path: string, array: boolean, newValue: any) => {
+        const splitSave = path.split(".");
+        var copySave = {...save}
+        console.log(copySave);
+        setItem(copySave.saveData!, splitSave, array, newValue);
+        console.log(copySave);
+        // @ts-ignore
+        setSave(copySave);
+    }
 
 	return (
 	<Container>
@@ -41,7 +114,7 @@ function App() {
                     <Accordion.Item eventKey="1">
                         <Accordion.Header onClick={() => { setActiveItem("1"); setSave(parseString(saveString))}}>Parsed Save File</Accordion.Header>
                         <Accordion.Body>
-                            { save ? <Save save={save?.saveData}></Save> : <Alert variant="danger">"Invalid save string"</Alert> }
+                            { save ? <Save save={save?.saveData} removeItem={removeItem} updateItem={updateItem} addItem={addItem}></Save> : <Alert variant="danger">"Invalid save string"</Alert> }
                         </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="2">

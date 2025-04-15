@@ -56,12 +56,12 @@ type goblin = {
     corruption: number
 }
 type bank = {
-    lockedItems: Array<number>,
-    tabs: Array<Map<number, number>>,
-    defaultTabs: Map<number, number>,
-    sortOrder: Array<number>,
-    glowing: Array<number>,
-    icons: Map<number, number>
+    lockedItems: Array<string>,
+    tabs: Array<Map<string, number>>,
+    defaultTabs: Map<string, number>,
+    sortOrder: Array<string>,
+    glowing: Array<string>,
+    icons: Map<number, string>
 }
 type raidHistory = {
     skills: Array<number>,
@@ -377,7 +377,7 @@ export type saveData = {
             equipmentSet: number,
             equipmentSets: Array<equipmentSet>,
             foodSlot: number,
-            foodSlots: Map<string, number>,
+            foodSlots: Array<{item: string, qty: number}>,
             maxFoodSlot: number,
             summoningTimer: timer,
             soulPoints: number,
@@ -433,7 +433,7 @@ export type saveData = {
             equipmentSet: number,
             equipmentSets: Array<equipmentSet>,
             foodSlot: number,
-            foodSlots: Map<string, number>,
+            foodSlots: Array<{item: string, qty: number}>,
             maxFoodSlot: number,
             summoningTimer: timer,
             soulPoints: number,
