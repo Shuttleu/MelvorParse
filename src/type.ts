@@ -1,3 +1,8 @@
+export type item = {
+    namespace: string
+    name: string
+    image: string
+}
 type timer = {
     ticksLeft: number,
     maxTicks: number,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { parseString } from "./reader.ts"
 import { parseSave } from "./writer.ts";
-import { saveData } from "./type.ts";
+import { saveData, item } from "./type.ts";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -15,80 +15,112 @@ function App() {
 	const [save, setSave] = useState<{saveData: saveData, initialSize: number}>();
 	const [newSavestring, setNewSaveString] = useState("");
     const [activeItem, setActiveItem] = useState("0");
-    const [items, setItems] = useState<Array<string>>([]);
+    const [items, setItems] = useState<Map<string, Array<item>>>(new Map());
+
+    const dataSets = [["melvorDemo", "melvorD"], ["melvorFull", "melvorF"], ["melvorTotH", "melvorToH"], ["melvorExpansion2", "melvorAoD"], ["melvorItA", "melvorItA"]];
+
+
 
     useEffect(() => {
-        fetch("https://corsproxy.io/?url=https://melvoridle.com/assets/schema/gameData.json").then((response) => {
-            if (response.ok) {
-                response.json().then((value) => {
-                    var tempArray: Array<string>= [];
-                    const categories = ["ItemID", "EquipmentItemID", "FoodItemID", "BoneItemID", "PotionItemID", "ReadableItemID", "OpenableItemID", "TokenItemID", "CompostItemID", "SoulItemID", "RuneItemID", "FiremakingOilItemID"];
-                    categories.forEach((category) => {
-                        tempArray = tempArray.concat(value.$defs[category].anyOf[1].enum);
-                    });
-                    setItems(tempArray);
-                })
-            }
+        var tempMap: Map<string, Array<item>> = new Map();
+        dataSets.forEach((dataSet) => {
+            fetch("/"+dataSet[0]+".json").then((response) => {
+                if (response.ok) {
+                    response.json().then((value) => {
+                        value.data.items.forEach((item: any) => {
+                            console.log(item);
+                            const newItem = {
+                                namespace: dataSet[1] + ":" + item.id,
+                                name: item.name,
+                                image: item.media
+                            }
+                            var  tempArray = tempMap.get(item.itemType)
+                            if (tempArray == undefined)
+                                tempArray = [newItem];
+                            else
+                                tempArray.push(newItem);
+                            console.log(item.itemType);
+                            tempMap.set(item.itemType, tempArray);
+                        })
+                        //const categories = ["ItemID", "EquipmentItemID", "FoodItemID", "BoneItemID", "PotionItemID", "ReadableItemID", "OpenableItemID", "TokenItemID", "CompostItemID", "SoulItemID", "RuneItemID", "FiremakingOilItemID"];
+                        //categories.forEach((category) => {
+                        //    tempArray = tempArray.concat(value.$defs[category].anyOf[1].enum);
+                        //});
+                        //setItems(tempArray);
+                    })
+                }
+            })
         })
-    });
+        
+        setItems(tempMap);
+        console.log(tempMap);
+        
+    }, []);
 
 	const generateSave = () => {
 	if (save)
-		setNewSaveString(parseSave(save.saveData, save.initialSize));
+        console.log(items);
+		setNewSaveString(parseSave(save!.saveData, save!.initialSize));
 	}
 
-    const getItem = (object: any, paths: Array<string>, array: boolean) => {
+    const addToSave = (object: any, paths: Array<string>, value: any, dataType: number) => { // array, map, object
         if (paths.length > 1)
-            return getItem(object[paths[0]], paths.slice(1), array)
-        else
-            return object[paths[0]];
-    }  
-
-    const setItem = (object: any, paths: Array<string>, array: boolean, value: any) => {
-        if (paths.length > 1)
-            return setItem(object[paths[0]], paths.slice(1), array, value);
-        else
-            if (array)
-                object[paths[0]] = value;
-            else
+            return addToSave(object[paths[0]], paths.slice(1), value, dataType);
+        else {
+            if (dataType == 0)
+                object[paths[0]].push(value);
+            else if (dataType == 1)
                 object.set(paths[0], value);
-    }  
+        }
+    }   
 
-    const deleteItem = (object: any, paths: Array<string>, array: boolean) => {
+    const deleteFromSave = (object: any, paths: Array<string>, dataType: number) => {
         if (paths.length > 1)
-            return deleteItem(object[paths[0]], paths.slice(1), array);
-        else
-            if (array)
+            return deleteFromSave(object[paths[0]], paths.slice(1), dataType);
+        else {
+            if (dataType == 0)
                 object.splice(paths[0], 1);
-            else
+            else if (dataType == 1)
                 object.delete(paths[0]);
+        }
     }  
 
-    const addItem = (path: string, array: boolean, item: any) => {
+    const updateSave = (object: any, paths: Array<string>, value: any, dataType: number) => {
+        if (paths.length > 1)
+            return updateSave(object[paths[0]], paths.slice(1), value, dataType);
+        else {
+            if (dataType == 0 || dataType == 2)
+                object[paths[0]] = value;
+            else if (dataType == 1)
+                object.set(paths[0], value);
+        }
+    }  
+
+    const addItem = (path: string, item: any, dataType: number) => {
         const splitSave = path.split(".");
         var copySave = {...save}
         console.log(copySave);
-        setItem(copySave.saveData!, splitSave, array, item);
+        addToSave(copySave.saveData!, splitSave, item, dataType);
         console.log(copySave);
         // @ts-ignore
         setSave(copySave);
     }
 
-    const removeItem = (path: string, array: boolean) => {
+    const deleteItem = (path: string, dataType: number) => {
         const splitSave = path.split(".");
         var copySave = {...save}
         console.log(copySave);
-        deleteItem(copySave.saveData!, splitSave, array, );
+        deleteFromSave(copySave.saveData!, splitSave, dataType);
         console.log(copySave);
         // @ts-ignore
         setSave(copySave);
     }
 
-    const updateItem = (path: string, array: boolean, newValue: any) => {
+    const updateItem = (path: string, newValue: any, dataType: number) => {
         const splitSave = path.split(".");
         var copySave = {...save}
         console.log(copySave);
-        setItem(copySave.saveData!, splitSave, array, newValue);
+        updateSave(copySave.saveData!, splitSave, newValue, dataType);
         console.log(copySave);
         // @ts-ignore
         setSave(copySave);
@@ -107,14 +139,14 @@ function App() {
                     <Accordion.Item eventKey="0">
                         <Accordion.Header onClick={() => {setActiveItem("0")}}>Save String</Accordion.Header>
                         <Accordion.Body>
-                            <textarea className="form-control" aria-label="With textarea" style={{height: "calc(100vh - 350px)"}} value={saveString} onChange={e => {setSaveString(e.target.value); setSave(parseString(e.target.value))}}></textarea>
+                            <textarea className="form-control" aria-label="With textarea" style={{height: "calc(100vh - 350px)"}} value={saveString} onChange={e => setSaveString(e.target.value)}></textarea>
                             <Button className="mt-3" disabled={saveString == ""} onClick={() => { setActiveItem("1"); setSave(parseString(saveString))}} variant="primary" style={{width: "100%"}}>Load save data</Button>
                         </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="1">
-                        <Accordion.Header onClick={() => { setActiveItem("1"); setSave(parseString(saveString))}}>Parsed Save File</Accordion.Header>
+                        <Accordion.Header onClick={() => setActiveItem("1")}>Parsed Save File</Accordion.Header>
                         <Accordion.Body>
-                            { save ? <Save save={save?.saveData} removeItem={removeItem} updateItem={updateItem} addItem={addItem}></Save> : <Alert variant="danger">"Invalid save string"</Alert> }
+                            { save ? <Save items={items} save={save?.saveData} removeItem={deleteItem} updateItem={updateItem} addItem={addItem}></Save> : <Alert variant="danger">"Invalid save string"</Alert> }
                         </Accordion.Body>
                     </Accordion.Item>
                     <Accordion.Item eventKey="2">

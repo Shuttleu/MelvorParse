@@ -1,14 +1,16 @@
 import { Col, Nav, NavLink, Row } from "react-bootstrap"
-import { saveData } from "../type"
+import { saveData, item } from "../type"
 import { useState } from "react"
 import Header from "./Header"
 import Bank from "./Bank"
+import Settings from "./Settings"
 
 type SaveProps = {
     save: saveData;
-    updateItem: (path: string, array: boolean, newValue: any) => void;
-    addItem: (path: string, array: boolean, newValue: any) => void;
-    removeItem: (path: string, array: boolean) => void;
+    updateItem: (path: string, newValue: any, dataType: number) => void;
+    addItem: (path: string, item: any, dataType: number) => void;
+    removeItem: (path: string, dataType: number) => void;
+    items: Map<string, Array<item>>;
 }
 
 export default function Save(props: SaveProps) {
@@ -37,7 +39,9 @@ export default function Save(props: SaveProps) {
             case 0:
                 return <Header save={props.save}></Header>;
             case 1:
-                return <Bank removeBankItem={props.removeItem} changeBankItem={props.updateItem} save={props.save}></Bank>;
+                return <Bank items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></Bank>;
+            case 5:
+                return <Settings items={props.items} updateItem={props.updateItem} save={props.save}></Settings>;
             default:
                 return undefined;
         }

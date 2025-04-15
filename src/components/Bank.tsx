@@ -1,11 +1,13 @@
-import { Button, ButtonGroup, ButtonToolbar, Col, Form, InputGroup, Nav, NavLink, Pagination, Row } from "react-bootstrap";
-import { saveData } from "../type"
-import { useState } from "react";
+import { Button, Col, Form, InputGroup, Nav, NavLink, Overlay, OverlayTrigger, Pagination, Popover, Row } from "react-bootstrap";
+import { saveData, item } from "../type"
+import { MouseEventHandler, useRef, useState } from "react";
 
 type tabsProps = {
     save: saveData;
-    changeBankItem: (path: string, array: boolean, newValue: any) => void;
-    removeBankItem: (path: string, array: boolean) => void;
+    updateItem: (path: string, newValue: any, dataType: number) => void;
+    addItem: (path: string, item: any, dataType: number) => void;
+    removeItem: (path: string, dataType: number) => void;
+    items: Map<string, Array<item>>;
 }
 
 type defaultTabsProps = {
@@ -14,13 +16,18 @@ type defaultTabsProps = {
 
 type bankProps = {
     save: saveData;
-    changeBankItem: (path: string, array: boolean, newValue: any) => void;
-    removeBankItem: (path: string, array: boolean) => void;
+    updateItem: (path: string, newValue: any, dataType: number) => void;
+    addItem: (path: string, item: any, dataType: number) => void;
+    removeItem: (path: string, dataType: number) => void;
+    items: Map<string, Array<item>>;
 }
 
 function Tabs(props: tabsProps) {
 
     const [currentTab, setCurrentTab] = useState(0);
+    const [showNewItem, setShowNewItem] = useState(false);
+    const [target, setTarget] = useState(null);
+    const [newItem, setNewItem] = useState("melvorD:Normal_Logs");
 
     const processTab = (tab: Map<string, number>) => {
         var items: Array<{item: string, qty: number}> = [];
@@ -30,10 +37,54 @@ function Tabs(props: tabsProps) {
         return items;
     }
 
+    const findItem = (item: string): item | undefined => {
+        var foundItem = undefined;
+        props.items.forEach((items) => {
+            const found = items.find((possItem) => possItem.namespace == item);
+            if (found != undefined)
+                foundItem = found;
+        });
+        return foundItem;
+    }
+
+    const processItems = (category: Map<string, Array<item>>) => {
+        var allItems: Array<item> = [];
+        category.forEach((items) => {
+            allItems = allItems.concat(items);
+        })
+        return allItems;
+    }
+
+    const clickNewItem = (e: any) => {
+        setShowNewItem(!showNewItem);
+        setTarget(e.target);
+    }
+
     return (
         <>
             <Row>
-                <Col><h1>Tabs</h1></Col>
+            <Col><h1>Tabs</h1></Col>
+            <Col><Overlay
+                show={showNewItem}
+                target={target}
+                placement="bottom"
+                containerPadding={20}
+                rootClose={true}
+                rootCloseEvent="click"
+                onHide={ () => {setShowNewItem(false);}}
+                >
+                        <Popover>
+                        <Popover.Header as="h3">Choose item to add</Popover.Header>
+                        <Popover.Body>
+                        <Form.Select value={newItem} onChange={(e) => setNewItem(e.target.value)} aria-label="Default select example">
+                            {   processItems(props.items).map((item) => <option key={item.namespace} value={item.namespace}>{item.name}</option>) }
+                            </Form.Select>
+                            <Button className="mt-3" onClick={() => props.addItem("bank.tabs."+currentTab+"."+newItem, 1, 1)} style={{width: "100%"}}>Add</Button>
+                        </Popover.Body>
+                        </Popover>
+                </Overlay>
+                
+                <Button onClick={clickNewItem} variant="secondary">Add item to bank</Button></Col>
                 <Col>
                     <Pagination>
                         { props.save.bank.tabs.map((_, tabNumber) => 
@@ -46,16 +97,18 @@ function Tabs(props: tabsProps) {
             </Row>
             <Row>
                 { processTab(props.save.bank.tabs[currentTab]).map((item) => {
+                    const foundItem = findItem(item.item);
                     return (
-                        <Col xs={12} lg={6}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text style={{width: "60%"}}>{item.item}</InputGroup.Text>
+                        <Col key={item.item} xs={6} lg={2} style={{textAlign: "center"}}>
+                            <img width="50px" src={"https://cdn2-main.melvor.net/"+foundItem!.image}></img>
+                            <InputGroup className="mb-3 p-2">
                                 <Form.Control
-                                    onChange={(e) => props.changeBankItem("bank.tabs."+currentTab+"."+item.item, false, e.target.value)}
+                                    onChange={(e) => props.updateItem("bank.tabs."+currentTab+"."+item.item, e.target.value, 1)}
                                     type="number"
                                     value={item.qty}
+                                    size="sm"
                                 />
-                                <InputGroup.Text onClick={() => props.removeBankItem("bank.tabs."+currentTab+"."+item.item, false)}>X</InputGroup.Text>
+                                <InputGroup.Text onClick={() => props.removeItem("bank.tabs."+currentTab+"."+item.item, 1)}>X</InputGroup.Text>
                             </InputGroup>
                         </Col>
                     )
@@ -98,7 +151,7 @@ function DefaultTabs(props: tabsProps) {
                             <Col xs={12} lg={6}>
                                 <InputGroup className="mb-3">
                                     <InputGroup.Text style={{width: "75%"}}>{item.item.split(":")[1].replace(/_/g, " ")}</InputGroup.Text>
-                                    <InputGroup.Text onClick={() => props.removeBankItem("bank.defaultTabs."+item.item, false)}>X</InputGroup.Text>
+                                    <InputGroup.Text onClick={() => props.removeItem("bank.defaultTabs."+item.item, 1)}>X</InputGroup.Text>
                                 </InputGroup>
                             </Col>
                         )
@@ -121,7 +174,7 @@ function SortOrder(props: tabsProps) {
                         <Col xs={12} lg={6}>
                             <InputGroup className="mb-3">
                                 <InputGroup.Text style={{width: "75%"}}>{item.split(":")[1].replace(/_/g, " ")}</InputGroup.Text>
-                                <InputGroup.Text onClick={() => props.removeBankItem("bank.sortOrder."+index, true)}>X</InputGroup.Text>
+                                <InputGroup.Text onClick={() => props.removeItem("bank.sortOrder."+index, 0)}>X</InputGroup.Text>
                             </InputGroup>
                         </Col>
                     )
@@ -133,6 +186,16 @@ function SortOrder(props: tabsProps) {
 }
 function LockedItems(props: tabsProps) {
 
+    const findItem = (item: string): item | undefined => {
+        var foundItem = undefined;
+        props.items.forEach((items) => {
+            const found = items.find((possItem) => possItem.namespace == item);
+            if (found != undefined)
+                foundItem = found;
+        });
+        return foundItem;
+    }
+
     return (
         <>
             <Row>
@@ -140,12 +203,10 @@ function LockedItems(props: tabsProps) {
             </Row>
             <Row>
                 { props.save.bank.lockedItems.map((item, index) => {
+                    const foundItem = findItem(item);
                     return (
-                        <Col xs={12} lg={6}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text style={{width: "75%"}}>{item.split(":")[1].replace(/_/g, " ")}</InputGroup.Text>
-                                <InputGroup.Text onClick={() => props.removeBankItem("bank.lockedItems."+index, true)}>X</InputGroup.Text>
-                            </InputGroup>
+                        <Col xs={6} lg={2} className="p-2">
+                            <img width="50px" onClick={() => props.removeItem("bank.lockedItems."+index, 0)} src={"https://cdn2-main.melvor.net/"+foundItem!.image}></img>
                         </Col>
                     )
                 })}
@@ -156,6 +217,16 @@ function LockedItems(props: tabsProps) {
 }
 function GlowingIcons(props: tabsProps) {
 
+    const findItem = (item: string): item | undefined => {
+        var foundItem = undefined;
+        props.items.forEach((items) => {
+            const found = items.find((possItem) => possItem.namespace == item);
+            if (found != undefined)
+                foundItem = found;
+        });
+        return foundItem;
+    }
+
     return (
         <>
             <Row>
@@ -163,12 +234,10 @@ function GlowingIcons(props: tabsProps) {
             </Row>
             <Row>
                 { props.save.bank.glowing.map((item, index) => {
+                    const foundItem = findItem(item);
                     return (
-                        <Col xs={12} lg={6}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text style={{width: "75%"}}>{item.split(":")[1].replace(/_/g, " ")}</InputGroup.Text>
-                                <InputGroup.Text onClick={() => props.removeBankItem("bank.glowing."+index, true)}>X</InputGroup.Text>
-                            </InputGroup>
+                        <Col xs={6} lg={2} className="p-2">
+                            <img width="50px" onClick={() => props.removeItem("bank.glowing."+index, 0)} src={"https://cdn2-main.melvor.net/"+foundItem!.image}></img>
                         </Col>
                     )
                 })}
@@ -203,7 +272,7 @@ function TabIcons(props: tabsProps) {
                                     type="number"
                                     value={item.tab}
                                 />
-                                <InputGroup.Text onClick={() => props.removeBankItem("bank.glowing."+index, true)}>X</InputGroup.Text>
+                                <InputGroup.Text onClick={() => props.removeItem("bank.glowing."+index, 1)}>X</InputGroup.Text>
                             </InputGroup>
                         </Col>
                     )
@@ -225,17 +294,17 @@ export default function Bank (props: bankProps) {
     const renderBank = (selected: number) => {
         switch(selected) {
             case 0:
-                return <Tabs removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></Tabs>;
+                return <Tabs items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></Tabs>;
             case 1:
-                return <DefaultTabs removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></DefaultTabs>;
+                return <DefaultTabs items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></DefaultTabs>;
             case 2:
-                return <GlowingIcons removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></GlowingIcons>;
+                return <GlowingIcons items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></GlowingIcons>;
             case 3:
-                return <LockedItems removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></LockedItems>;
+                return <LockedItems items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></LockedItems>;
             case 4:
-                return <SortOrder removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></SortOrder>;
+                return <SortOrder items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></SortOrder>;
             case 5:
-                return <TabIcons removeBankItem={props.removeBankItem} changeBankItem={props.changeBankItem} save={props.save}></TabIcons>;
+                return <TabIcons items={props.items} removeItem={props.removeItem} updateItem={props.updateItem} addItem={props.addItem} save={props.save}></TabIcons>;
         default:
                 return undefined;
         }
